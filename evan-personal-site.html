@@ -606,10 +606,168 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   color:var(--muted);
 }
 
+/* ---------------- 他人评价 ---------------- */
+.reviews-layout{
+  margin-top:clamp(24px, 4vw, 36px);
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) 320px;
+  gap:20px;
+  align-items:start;
+}
+
+.reviews-main{ display:grid; gap:14px; }
+
+.reviews-meta{
+  font-size:12.5px;
+  color:var(--muted);
+  letter-spacing:.02em;
+}
+
+.review-list{ display:grid; gap:14px; }
+
+.review-item{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px 20px;
+  box-shadow:var(--shadow-sm);
+}
+
+.review-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.review-relation{
+  font-size:12.5px; font-weight:600;
+  color:var(--accent-ink);
+  background:var(--accent-soft);
+  padding:3px 11px;
+  border-radius:999px;
+}
+.review-time{ font-size:12px; color:var(--muted); white-space:nowrap; }
+.review-text{
+  margin-top:10px;
+  font-size:15px;
+  line-height:1.85;
+  color:var(--text);
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+.reviews-empty{
+  background:var(--surface);
+  border:1px dashed var(--line);
+  border-radius:16px;
+  padding:34px 20px;
+  text-align:center;
+  font-size:14px;
+  color:var(--muted);
+}
+
+.reviews-note{
+  margin-top:4px;
+  font-size:12px;
+  line-height:1.7;
+  color:var(--muted);
+}
+
+.reviews-side{ position:sticky; top:calc(var(--nav-h) + 16px); }
+
+.review-cta{
+  background:#e8f1fe;
+  border:1px solid #cfe0fb;
+  border-radius:18px;
+  padding:22px 20px;
+  text-align:center;
+}
+.review-cta-title{
+  font-size:13.5px;
+  font-weight:600;
+  color:#2a4e86;
+}
+.btn-cta{
+  margin-top:14px;
+  width:100%;
+  height:46px;
+  font:inherit;
+  font-size:15px;
+  font-weight:600;
+  color:#1f4e96;
+  background:#d8e8fd;
+  border:1px solid #bcd6fa;
+  border-radius:999px;
+  cursor:pointer;
+  transition:background-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.btn-cta:hover{
+  background:#c8ddfb;
+  transform:translateY(-1px);
+  box-shadow:0 12px 24px -16px rgba(31,78,150,.8);
+}
+.btn-cta:active{ transform:translateY(0); }
+.review-cta-note{
+  margin-top:10px;
+  font-size:12px;
+  color:#4a6b9c;
+}
+
+.review-form[hidden],
+.review-cta[hidden]{ display:none; }
+
+.review-form{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:var(--shadow-sm);
+  display:grid;
+  gap:14px;
+}
+.review-field{ display:grid; gap:7px; }
+.review-field label{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--ink);
+}
+.review-field input,
+.review-field textarea{
+  width:100%;
+  font:inherit;
+  font-size:14px;
+  color:var(--ink);
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:11px;
+  padding:10px 12px;
+  transition:border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+.review-field input::placeholder,
+.review-field textarea::placeholder{ color:#9aa4b2; }
+.review-field textarea{ min-height:116px; resize:vertical; line-height:1.7; }
+.review-field input:focus,
+.review-field textarea:focus{
+  outline:none;
+  background:var(--surface);
+  border-color:rgba(62,99,221,.55);
+  box-shadow:0 0 0 3px var(--accent-soft);
+}
+
+.review-error{
+  min-height:0;
+  font-size:12.5px;
+  color:#c0392b;
+}
+.review-error:empty{ display:none; }
+
+.review-form-actions{ display:flex; gap:10px; }
+.review-form-actions .btn{ flex:1 1 auto; height:44px; padding:0 14px; }
+
 /* ---------------- 响应式 ---------------- */
 @media (max-width:900px){
   .about-grid{ grid-template-columns:1fr; }
   .about-aside{ order:2; }
+
+  .reviews-layout{ grid-template-columns:1fr; }
+  .reviews-side{ position:static; order:-1; }
 
   .detail-layout{ grid-template-columns:1fr; }
   .detail-nav{
@@ -764,6 +922,18 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
               <span class="link-card-title">详情</span>
               <span class="entry-card-text">我的故事/回忆 · 作品集 · 简历下载</span>
               <span class="entry-card-arrow" aria-hidden="true">查看详情
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h13M13 6l6 6-6 6"/>
+                </svg>
+              </span>
+            </a>
+
+            <!-- 他人评价入口：同样是页面内切换 -->
+            <a class="link-card entry-card" href="#/reviews">
+              <span class="link-card-title">他人评价</span>
+              <span class="entry-card-text">朋友、同学和共事过的人怎么说</span>
+              <span class="entry-card-arrow" aria-hidden="true">去看看
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12h13M13 6l6 6-6 6"/>
@@ -998,6 +1168,61 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
       </div>
     </div>
   </section>
+  <!-- ============================ ⑩ 他人评价（从「关于我」进入） ============================ -->
+  <section class="page" id="page-reviews" data-title="他人评价" hidden>
+    <div class="page-body">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Testimonials</p>
+          <h2>他人评价</h2>
+          <p class="lead">朋友、同学和共事过的人，说几句真实的印象。</p>
+        </div>
+
+        <div class="reviews-layout">
+
+          <div class="reviews-main">
+            <p class="reviews-meta"><span id="review-count">共 0 条</span></p>
+            <ul class="review-list" id="review-list"></ul>
+            <p class="reviews-empty" id="reviews-empty">还没有评论，右侧点一下，来写第一条吧。</p>
+            <p class="reviews-note">
+              评论保存在你这台设备的浏览器里（localStorage），换设备或清理缓存后不会保留；
+              想做成所有人可见，需要接一个后端或第三方评论服务。
+            </p>
+          </div>
+
+          <aside class="reviews-side">
+            <div class="review-cta" id="review-cta">
+              <p class="review-cta-title">说说你眼中的我</p>
+              <button class="btn-cta" id="review-open" type="button">点我评论</button>
+              <p class="review-cta-note">不用登录，填完立刻显示</p>
+            </div>
+
+            <form class="review-form" id="review-form" hidden>
+              <div class="review-field">
+                <label for="review-relation">你与他的关系</label>
+                <input id="review-relation" name="relation" type="text" maxlength="20"
+                       placeholder="同学 / 朋友 / 网友…" autocomplete="off" required>
+              </div>
+
+              <div class="review-field">
+                <label for="review-text">评论</label>
+                <textarea id="review-text" name="text" maxlength="500"
+                          placeholder="写点真实的印象，比如一起做过什么、印象最深的一件事…" required></textarea>
+              </div>
+
+              <p class="review-error" id="review-error" role="alert"></p>
+
+              <div class="review-form-actions">
+                <button class="btn btn-primary" type="submit">发布</button>
+                <button class="btn btn-ghost" type="button" id="review-cancel">取消</button>
+              </div>
+            </form>
+          </aside>
+
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <!-- ============================ 页脚 ============================ -->
@@ -1071,9 +1296,9 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   /* ---------------- 页面切换（#/home · #/about · #/contact） ---------------- */
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
   var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-link'));
-  var PAGES = { home: true, about: true, contact: true, detail: true };
+  var PAGES = { home: true, about: true, contact: true, detail: true, reviews: true };
   // 详情页属于「关于我」的下级，导航仍高亮「关于我」
-  var NAV_PARENT = { detail: 'about' };
+  var NAV_PARENT = { detail: 'about', reviews: 'about' };
   var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var current = null;
 
@@ -1234,6 +1459,138 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
       window.location.href = web;
     }
   });
+
+  /* ---------------- 他人评价：评论列表 + 本地存储 ---------------- */
+  var REVIEW_KEY = 'evan-reviews-v1';
+
+  var reviewList = document.getElementById('review-list');
+  var reviewEmpty = document.getElementById('reviews-empty');
+  var reviewCount = document.getElementById('review-count');
+  var reviewCta = document.getElementById('review-cta');
+  var reviewForm = document.getElementById('review-form');
+  var reviewOpen = document.getElementById('review-open');
+  var reviewCancel = document.getElementById('review-cancel');
+  var reviewRelation = document.getElementById('review-relation');
+  var reviewText = document.getElementById('review-text');
+  var reviewError = document.getElementById('review-error');
+
+  function loadReviews() {
+    try {
+      var raw = window.localStorage.getItem(REVIEW_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveReviews(list) {
+    try {
+      window.localStorage.setItem(REVIEW_KEY, JSON.stringify(list.slice(0, 200)));
+    } catch (error) {
+      // 隐私模式或配额满时静默失败，页面照常展示
+    }
+  }
+
+  function formatTime(ts) {
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+           ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function renderReviews() {
+    if (!reviewList) return;
+
+    var list = loadReviews().sort(function (a, b) { return (b.time || 0) - (a.time || 0); });
+    reviewList.textContent = '';
+
+    list.forEach(function (item) {
+      var li = document.createElement('li');
+      li.className = 'review-item';
+
+      var head = document.createElement('div');
+      head.className = 'review-head';
+
+      var relation = document.createElement('span');
+      relation.className = 'review-relation';
+      relation.textContent = item.relation || '访客';
+
+      var time = document.createElement('time');
+      time.className = 'review-time';
+      time.textContent = formatTime(item.time);
+
+      var body = document.createElement('p');
+      body.className = 'review-text';
+      body.textContent = item.text || '';
+
+      head.appendChild(relation);
+      head.appendChild(time);
+      li.appendChild(head);
+      li.appendChild(body);
+      reviewList.appendChild(li);
+    });
+
+    if (reviewEmpty) reviewEmpty.hidden = list.length > 0;
+    if (reviewCount) reviewCount.textContent = '共 ' + list.length + ' 条';
+  }
+
+  function openReviewForm(open) {
+    if (!reviewForm || !reviewCta) return;
+    reviewForm.hidden = !open;
+    reviewCta.hidden = open;
+    if (open) {
+      if (reviewError) reviewError.textContent = '';
+      if (reviewRelation) reviewRelation.focus();
+    }
+  }
+
+  if (reviewOpen) {
+    reviewOpen.addEventListener('click', function () { openReviewForm(true); });
+  }
+
+  if (reviewCancel) {
+    reviewCancel.addEventListener('click', function () {
+      openReviewForm(false);
+      if (reviewError) reviewError.textContent = '';
+    });
+  }
+
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      var relation = (reviewRelation ? reviewRelation.value : '').trim();
+      var text = (reviewText ? reviewText.value : '').trim();
+
+      if (!relation || !text) {
+        if (reviewError) reviewError.textContent = '「你与他的关系」和「评论」都要填写。';
+        if (!relation && reviewRelation) reviewRelation.focus();
+        else if (!text && reviewText) reviewText.focus();
+        return;
+      }
+
+      var list = loadReviews();
+      list.unshift({
+        relation: relation.slice(0, 20),
+        text: text.slice(0, 500),
+        time: Date.now()
+      });
+      saveReviews(list);
+
+      if (reviewRelation) reviewRelation.value = '';
+      if (reviewText) reviewText.value = '';
+      if (reviewError) reviewError.textContent = '';
+
+      renderReviews();
+      openReviewForm(false);
+      showToast('已发布，谢谢你的评价');
+    });
+  }
+
+  // 首次进入页面时渲染已有评论
+  renderReviews();
 
   /* ---------------- 空链接提示 ---------------- */
   document.addEventListener('click', function (event) {
