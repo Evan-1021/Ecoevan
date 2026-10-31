@@ -24,6 +24,7 @@
   ⑥ 邮箱      搜索  1521133265@qq.com （出现两处：显示文字 + data-copy）
   ⑦ 版权年份   搜索  const COPYRIGHT_YEAR
   ⑧ 配色      搜索  :root                改 --accent 等变量即可整体换色
+  ⑨ 详情页    搜索  「⑨ 详情」注释：左侧三个模块、博客/作品集地址、简历下载文件都在这一页
   ================================================================
 -->
 
@@ -396,6 +397,12 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
 }
 .btn-ghost:hover{ border-color:#d5dae3; color:var(--ink); }
 
+.btn-primary{
+  background:var(--accent); color:#fff;
+  box-shadow:0 10px 24px -14px rgba(62,99,221,.9);
+}
+.btn-primary:hover{ background:var(--accent-ink); color:#fff; }
+
 .socials{
   margin-top:clamp(20px, 3vw, 28px);
   display:grid;
@@ -495,10 +502,131 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
 }
 .toast.is-visible{ opacity:1; transform:translate(-50%, 0); }
 
+/* ---------------- 详情页 ---------------- */
+.entry-card{
+  display:block;
+  color:var(--ink);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.entry-card:hover{
+  color:var(--ink);
+  transform:translateY(-2px);
+  border-color:rgba(62,99,221,.35);
+  box-shadow:var(--shadow-md);
+}
+.entry-card-text{
+  display:block;
+  margin-top:10px;
+  font-size:14.5px;
+  color:var(--text);
+}
+.entry-card-arrow{
+  display:inline-flex; align-items:center; gap:6px;
+  margin-top:14px;
+  font-size:13.5px; font-weight:600;
+  color:var(--accent);
+}
+.entry-card-arrow svg{ width:16px; height:16px; transition:transform .18s ease; }
+.entry-card:hover .entry-card-arrow svg{ transform:translateX(3px); }
+
+.detail-layout{
+  margin-top:clamp(26px, 4vw, 40px);
+  display:grid;
+  grid-template-columns:300px minmax(0, 1fr);
+  gap:20px;
+  align-items:start;
+}
+
+.detail-nav{
+  display:grid;
+  gap:10px;
+  position:sticky;
+  top:calc(var(--nav-h) + 16px);
+}
+
+.detail-tab{
+  display:flex; align-items:center; gap:12px;
+  width:100%;
+  padding:15px 17px;
+  text-align:left;
+  font-family:inherit;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  transition:border-color .18s ease, background-color .18s ease,
+             transform .18s ease, box-shadow .18s ease;
+}
+.detail-tab:hover{ transform:translateY(-1px); border-color:#d5dae3; }
+.detail-tab.is-active{
+  border-color:rgba(62,99,221,.45);
+  background:var(--accent-soft);
+  box-shadow:none;
+}
+.detail-tab-index{
+  font-size:11.5px; font-weight:650; letter-spacing:.06em;
+  color:var(--muted);
+}
+.detail-tab.is-active .detail-tab-index{ color:var(--accent); }
+.detail-tab-text{ display:grid; gap:2px; min-width:0; }
+.detail-tab-name{ font-size:14.5px; font-weight:600; color:var(--ink); }
+.detail-tab-desc{ font-size:12px; color:var(--muted); }
+
+.detail-panels{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  padding:clamp(22px, 4vw, 38px);
+  box-shadow:var(--shadow-sm);
+  min-height:clamp(300px, 42vh, 420px);
+}
+
+.detail-panel{ display:none; }
+.detail-panel.is-active{ display:block; }
+.js .detail-panel.is-active.is-entering{ animation:pageIn .38s cubic-bezier(.2,.7,.2,1) both; }
+
+.detail-title{
+  font-size:clamp(20px, 2.6vw, 24px);
+  letter-spacing:-.01em;
+  color:var(--ink);
+}
+.detail-text{
+  margin-top:12px;
+  max-width:46em;
+  font-size:15.5px;
+  line-height:1.9;
+  color:var(--text);
+}
+.detail-panel .btn{ margin-top:22px; }
+.detail-note{
+  margin-top:16px;
+  font-size:12.5px;
+  line-height:1.7;
+  color:var(--muted);
+}
+
 /* ---------------- 响应式 ---------------- */
 @media (max-width:900px){
   .about-grid{ grid-template-columns:1fr; }
   .about-aside{ order:2; }
+
+  .detail-layout{ grid-template-columns:1fr; }
+  .detail-nav{
+    position:static;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:8px;
+  }
+  .detail-tab{ flex-direction:column; align-items:flex-start; gap:6px; padding:13px 14px; }
+  .detail-tab-index{ display:none; }
+  .detail-tab-desc{ font-size:11.5px; }
+  .detail-panels{ min-height:0; padding:24px 20px; }
+}
+
+@media (max-width:480px){
+  .detail-nav{ grid-template-columns:1fr; }
+  .detail-tab{ flex-direction:row; align-items:center; gap:10px; }
+  .detail-tab-text{ gap:1px; }
 }
 
 @media (max-width:640px){
@@ -631,15 +759,17 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
               <figcaption>配图占位，可替换为你的照片或作品图</figcaption>
             </figure>
 
-            <!-- 可自由增删的链接列表；href 留空即为占位 -->
-            <div class="link-card">
-              <p class="link-card-title">常用链接</p>
-              <ul class="link-list">
-                <li><a href="">个人博客<span class="arrow" aria-hidden="true">→</span></a></li>
-                <li><a href="">作品集<span class="arrow" aria-hidden="true">→</span></a></li>
-                <li><a href="">简历下载<span class="arrow" aria-hidden="true">→</span></a></li>
-              </ul>
-            </div>
+            <!-- 详情入口：点进去是同一文件里的「详情」页，不新开窗口 -->
+            <a class="link-card entry-card" href="#/detail">
+              <span class="link-card-title">详情</span>
+              <span class="entry-card-text">个人博客 · 作品集 · 简历下载</span>
+              <span class="entry-card-arrow" aria-hidden="true">查看详情
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h13M13 6l6 6-6 6"/>
+                </svg>
+              </span>
+            </a>
           </aside>
 
         </div>
@@ -768,7 +898,99 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
           </ul>
 
           <!-- 发布前可以删掉这一行提示 -->
-          <p class="hint">抖音、哔哩哔哩可点击卡片直接跳转主页；微信 / QQ / X 仅作展示。「关于我」里的常用链接仍是占位。</p>
+          <p class="hint">抖音、哔哩哔哩可点击卡片直接跳转主页；微信 / QQ / X 仅作展示。「关于我 → 详情」里的链接仍是占位。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- ============================ ⑨ 详情（从「关于我」进入，同一页面内切换） ============================ -->
+  <section class="page" id="page-detail" data-title="详情" hidden>
+    <div class="page-body">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Details</p>
+          <h2>详情</h2>
+          <p class="lead">博客、作品集与简历，都集中在这一页；左侧切换即可。</p>
+        </div>
+
+        <div class="detail-layout">
+
+          <!-- 左侧三个模块，自上而下 -->
+          <aside class="detail-nav" aria-label="详情分类">
+            <button class="detail-tab is-active" type="button" role="tab"
+                    id="tab-blog" aria-controls="panel-blog" aria-selected="true"
+                    data-panel="blog">
+              <span class="detail-tab-index" aria-hidden="true">01</span>
+              <span class="detail-tab-text">
+                <span class="detail-tab-name">个人博客</span>
+                <span class="detail-tab-desc">写点过程与想法</span>
+              </span>
+            </button>
+
+            <button class="detail-tab" type="button" role="tab"
+                    id="tab-works" aria-controls="panel-works" aria-selected="false"
+                    data-panel="works">
+              <span class="detail-tab-index" aria-hidden="true">02</span>
+              <span class="detail-tab-text">
+                <span class="detail-tab-name">作品集</span>
+                <span class="detail-tab-desc">做过的一些东西</span>
+              </span>
+            </button>
+
+            <button class="detail-tab" type="button" role="tab"
+                    id="tab-resume" aria-controls="panel-resume" aria-selected="false"
+                    data-panel="resume">
+              <span class="detail-tab-index" aria-hidden="true">03</span>
+              <span class="detail-tab-text">
+                <span class="detail-tab-name">简历下载</span>
+                <span class="detail-tab-desc">一页纸的完整版</span>
+              </span>
+            </button>
+          </aside>
+
+          <!-- 右侧内容 -->
+          <div class="detail-panels">
+
+            <section class="detail-panel is-active" id="panel-blog"
+                     role="tabpanel" aria-labelledby="tab-blog">
+              <h3 class="detail-title">个人博客</h3>
+              <p class="detail-text">
+                记录做产品、写代码和生活里的一些想法，更新不算勤，但每次写都想写清楚。
+              </p>
+              <!-- 把 href 换成你的博客地址即可 -->
+              <a class="btn btn-primary" href="" data-empty="true">前往博客</a>
+              <p class="detail-note">博客地址待填写：把上面按钮的 <code>href</code> 换成你的网址。</p>
+            </section>
+
+            <section class="detail-panel" id="panel-works"
+                     role="tabpanel" aria-labelledby="tab-works">
+              <h3 class="detail-title">作品集</h3>
+              <p class="detail-text">
+                挑了几个自己还算满意的项目：从需求梳理、界面设计到上线维护，基本都是从头跟到尾。
+              </p>
+              <!-- 把 href 换成作品集地址即可；也可以直接在这里放图片 -->
+              <a class="btn btn-primary" href="" data-empty="true">查看作品集</a>
+              <p class="detail-note">作品集地址待填写：把上面按钮的 <code>href</code> 换成你的网址。</p>
+            </section>
+
+            <section class="detail-panel" id="panel-resume"
+                     role="tabpanel" aria-labelledby="tab-resume">
+              <h3 class="detail-title">简历下载</h3>
+              <p class="detail-text">
+                一页纸的完整版简历，包含工作经历、项目与技能清单。下载后可直接用邮件联系我。
+              </p>
+              <!-- 下载链接：把简历文件（如 resume.pdf）放到同一目录，再把 href 改成 ./resume.pdf 即可 -->
+              <a class="btn btn-primary" href=""
+                 download="Evan-简历.pdf"
+                 data-empty="true"
+                 data-empty-message="简历文件还没放上来，稍后补充">下载简历（PDF）</a>
+              <p class="detail-note">
+                文件待补充：把 <code>resume.pdf</code> 放到与 index.html 同一目录，再把按钮的
+                <code>href</code> 改成 <code>./resume.pdf</code>，点击就会直接下载。
+              </p>
+            </section>
+
+          </div>
         </div>
       </div>
     </div>
@@ -846,7 +1068,9 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   /* ---------------- 页面切换（#/home · #/about · #/contact） ---------------- */
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
   var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-link'));
-  var PAGES = { home: true, about: true, contact: true };
+  var PAGES = { home: true, about: true, contact: true, detail: true };
+  // 详情页属于「关于我」的下级，导航仍高亮「关于我」
+  var NAV_PARENT = { detail: 'about' };
   var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var current = null;
 
@@ -876,8 +1100,10 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
       activePage.classList.add('is-entering');
     }
 
+    var navName = NAV_PARENT[name] || name;
+
     navLinks.forEach(function (link) {
-      var isCurrent = link.getAttribute('data-page') === name;
+      var isCurrent = link.getAttribute('data-page') === navName;
       link.classList.toggle('is-active', isCurrent);
       if (isCurrent) {
         link.setAttribute('aria-current', 'page');
@@ -918,6 +1144,46 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
     });
   }
 
+  /* ---------------- 详情页：左侧模块切换 ---------------- */
+  var detailTabs = Array.prototype.slice.call(document.querySelectorAll('.detail-tab'));
+
+  function selectDetailPanel(key) {
+    detailTabs.forEach(function (tab) {
+      var active = tab.getAttribute('data-panel') === key;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+
+    var panels = document.querySelectorAll('.detail-panel');
+
+    Array.prototype.forEach.call(panels, function (panel) {
+      var active = panel.id === 'panel-' + key;
+      panel.classList.toggle('is-active', active);
+      panel.classList.remove('is-entering');
+
+      if (active && !prefersReduced) {
+        void panel.offsetWidth;      // 重置动画
+        panel.classList.add('is-entering');
+      }
+    });
+  }
+
+  detailTabs.forEach(function (tab, index) {
+    tab.addEventListener('click', function () {
+      selectDetailPanel(tab.getAttribute('data-panel'));
+    });
+
+    // 上下键在三个模块之间切换
+    tab.addEventListener('keydown', function (event) {
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+      event.preventDefault();
+      var step = event.key === 'ArrowDown' ? 1 : -1;
+      var next = detailTabs[(index + step + detailTabs.length) % detailTabs.length];
+      next.focus();
+      selectDetailPanel(next.getAttribute('data-panel'));
+    });
+  });
+
   /* ---------------- 头像加载失败 -> 字母占位 ---------------- */
   var avatar = document.getElementById('avatar');
   var ring = document.getElementById('avatar-ring');
@@ -937,7 +1203,8 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
     var emptyLink = event.target.closest('a[data-empty="true"], a[href=""]');
     if (!emptyLink) return;
     event.preventDefault();
-    showToast('链接待填写：编辑 href 换成你的地址');
+    var message = emptyLink.getAttribute('data-empty-message') || '链接待填写：编辑 href 换成你的地址';
+    showToast(message);
   });
 
   /* ---------------- 复制邮箱 ---------------- */
