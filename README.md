@@ -48,22 +48,27 @@ create policy "reviews insertable by all"
   on public.reviews for insert with check (true);
 ```
 
-### 2. 填两行配置
+### 2. 同域名接口（已配好）
 
-项目 **Settings → API** 里复制 `Project URL` 与 `anon public` key，打开 `index.html`，搜索 `SUPABASE_URL`：
+浏览器**不直接访问 supabase.co**（部分地区访问不到），而是请求自己域名下的
+`/api/reviews`，由 Cloudflare Pages Function 在服务端转发到 Supabase。
 
-```js
-var SUPABASE_URL = 'https://xxxxxxxx.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6...';
-```
+- 函数文件：`functions/api/reviews.js`
+- 页面里只需要一行：`var REVIEWS_API = '/api/reviews';`
+- Supabase 的 URL / anon key 写在函数里（服务端），不再出现在网页源码中
 
-两行留空 = 本机模式；填上并刷新 = 云端模式（页面上会自动出现“评论已公开显示”的提示）。
+> 如果以后换了 Supabase 项目或 key，改 `functions/api/reviews.js` 顶部那两行即可。
+> 也可以改成在 Cloudflare Pages 的 Environment variables 里配 `SUPABASE_URL` / `SUPABASE_KEY`。
 
-### 3. 提交
+### 3. 部署
+
+推送到 GitHub 后，Cloudflare Pages 会自动构建并生效（约 1 分钟）。验证接口：
 
 ```bash
-git add -A && git commit -m "connect supabase" && git push
+curl https://ecoevan.pages.dev/api/reviews
 ```
+
+返回 JSON 数组即正常。
 
 ### 说明
 
