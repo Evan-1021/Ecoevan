@@ -77,3 +77,32 @@ curl https://ecoevan.pages.dev/api/reviews
 - 管理评论：Supabase → **Table Editor → reviews**，可以直接删掉不合适的记录。
 - 同一浏览器 1 分钟内只能发一条（前端节流）；要更严的防刷可以在 Supabase 侧加触发器或 Edge Function。
 - 免费项目闲置 7 天会暂停，打开一次后台即可唤醒；数据不会丢。
+
+## 自己上传照片（Pages CMS）
+
+不用改代码，也不用来回找人：用 Pages CMS 在网页上拖图即可，保存后自动提交、自动重新部署。
+
+### 第一次配置（约 2 分钟）
+
+1. 打开 <https://app.pagescms.org>
+2. **Sign in with GitHub**（用 Evan-1021 账号）
+3. 提示安装 GitHub App 时，点 **Install**，只选择 `Ecoevan` 这个仓库
+4. 回到页面，选择仓库 `Evan-1021/Ecoevan`
+
+### 以后每次传照片
+
+1. 打开 <https://app.pagescms.org> → 选仓库
+2. 左侧点 **图库 / 作品集**
+3. **照片列表 → 添加**：选图片（自动存进 `photos/`），可填一句说明
+4. 点 **Save** → 自动提交到 GitHub → Cloudflare Pages 约 1 分钟后重新构建
+5. 刷新网站：**我的最近 → 图库** 和 **详情 → 作品集** 都会出现
+
+### 相关文件
+
+| 文件 | 作用 |
+|---|---|
+| `.pages.yml` | 后台能编辑什么（图片目录、字段） |
+| `content/gallery.json` | 照片清单（后台自动写） |
+| `photos/` | 上传的图片 |
+
+> 想再增加可编辑内容（例如「小日记」），在 `.pages.yml` 的 `content` 里加一段配置即可。

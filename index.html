@@ -918,6 +918,50 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
 }
 .recent-diary p{ margin-top:4px; font-size:13.5px; line-height:1.7; color:var(--text); }
 
+/* ---------------- 图库 ---------------- */
+.photo-grid{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:8px;
+}
+.photo-grid:empty{ display:none; }
+.photo-item{
+  position:relative;
+  margin:0;
+  aspect-ratio:1;
+  border-radius:12px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--surface-2);
+}
+.photo-item img{
+  width:100%; height:100%;
+  object-fit:cover;
+  display:block;
+  transition:transform .3s ease;
+}
+.photo-item:hover img{ transform:scale(1.04); }
+.photo-item figcaption{
+  position:absolute; left:0; right:0; bottom:0;
+  padding:18px 10px 8px;
+  font-size:11px; line-height:1.4; color:#fff;
+  background:linear-gradient(180deg, transparent, rgba(0,0,0,.6));
+}
+.photo-empty{
+  margin-top:12px;
+  padding:20px 16px;
+  text-align:center;
+  font-size:12.5px; color:var(--muted);
+  border:1px dashed var(--line);
+  border-radius:12px;
+}
+.photo-empty[hidden]{ display:none; }
+
+@media (max-width:640px){
+  .photo-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+}
+
 /* ---------------- 抖音二维码弹窗 ---------------- */
 .qr-modal{
   position:fixed; inset:0; z-index:120;
@@ -1410,11 +1454,11 @@ button.social{
                      role="tabpanel" aria-labelledby="tab-works">
               <h3 class="detail-title">作品集</h3>
               <p class="detail-text">
-                挑了几个自己还算满意的项目：从需求梳理、界面设计到上线维护，基本都是从头跟到尾。
+                拍过的照片、做过的东西，都放在这里。照片在后台「图库 / 作品集」里上传，保存后自动出现。
               </p>
-              <!-- 把 href 换成作品集地址即可；也可以直接在这里放图片 -->
-              <a class="btn btn-primary" href="" data-empty="true">查看作品集</a>
-              <p class="detail-note">作品集地址待填写：把上面按钮的 <code>href</code> 换成你的网址。</p>
+              <div class="photo-grid" id="works-gallery"></div>
+              <p class="photo-empty" id="works-empty">还没有照片，去后台传一张就会出现。</p>
+              <p class="detail-note">在 Pages CMS（app.pagescms.org）里上传图片并填写说明，提交后网站会自动更新。</p>
             </section>
 
             <section class="detail-panel" id="panel-resume"
@@ -1542,11 +1586,8 @@ button.social{
             <p class="recent-text">
               随手拍的一些画面，攒够一组再放上来。现在先占个位置。
             </p>
-            <div class="recent-gallery" aria-hidden="true">
-              <span style="--g1:#cfe0fb; --g2:#eef4fe"></span>
-              <span style="--g1:#dbe8d4; --g2:#f1f7ec"></span>
-              <span style="--g1:#f2e2cd; --g2:#fbf4ea"></span>
-            </div>
+            <div class="photo-grid" id="gallery-grid"></div>
+            <p class="photo-empty" id="gallery-empty">还没有照片，去后台传一张就会出现在这里。</p>
           </article>
 
           <article class="recent-card">
@@ -2039,6 +2080,63 @@ button.social{
 
   // 首次进入页面时加载
   loadReviews();
+
+  /* ---------------- 图库：读取 Pages CMS 写入的 content/gallery.json ---------------- */
+  var galleryTargets = [
+    { grid: document.getElementById('gallery-grid'), empty: document.getElementById('gallery-empty') },
+    { grid: document.getElementById('works-gallery'), empty: document.getElementById('works-empty') }
+  ];
+
+  function renderGallery(photos) {
+    galleryTargets.forEach(function (target) {
+      if (!target.grid) return;
+      target.grid.textContent = '';
+
+      photos.forEach(function (photo) {
+        var src = photo && photo.image;
+        if (!src) return;
+
+        var fig = document.createElement('figure');
+        fig.className = 'photo-item';
+
+        var img = document.createElement('img');
+        img.src = src;
+        img.alt = photo.caption || '照片';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        fig.appendChild(img);
+
+        if (photo.caption) {
+          var cap = document.createElement('figcaption');
+          cap.textContent = photo.caption;
+          fig.appendChild(cap);
+        }
+
+        target.grid.appendChild(fig);
+      });
+
+      if (target.empty) target.empty.hidden = target.grid.children.length > 0;
+    });
+  }
+
+  function loadGallery() {
+    var hasTarget = galleryTargets.some(function (target) { return !!target.grid; });
+    if (!hasTarget) return;
+
+    window.fetch('content/gallery.json', { cache: 'no-store' })
+      .then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+      })
+      .then(function (data) {
+        renderGallery((data && data.photos) || []);
+      })
+      .catch(function () {
+        renderGallery([]);
+      });
+  }
+
+  loadGallery();
 
   /* ---------------- 抖音二维码弹窗 ---------------- */
   var qrModal = document.getElementById('qr-modal');

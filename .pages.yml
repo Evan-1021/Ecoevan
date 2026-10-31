@@ -1,0 +1,23 @@
+# Pages CMS 配置：登录 https://app.pagescms.org 后，这个文件决定你能编辑什么
+media:
+  input: photos        # 上传的图片存到仓库 photos/ 目录
+  output: /photos      # 写进内容里的地址前缀
+
+content:
+  - name: gallery
+    label: 图库 / 作品集
+    type: file
+    path: content/gallery.json
+    fields:
+      - name: photos
+        label: 照片列表
+        type: object
+        list: true
+        fields:
+          - name: image
+            label: 图片
+            type: image
+            media: photos
+          - name: caption
+            label: 说明（选填）
+            type: string
