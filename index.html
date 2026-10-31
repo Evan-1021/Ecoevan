@@ -978,6 +978,8 @@ button.social{
 
 /* ---------------- 响应式 ---------------- */
 @media (max-width:900px){
+  .home-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+
   .about-grid{ grid-template-columns:1fr; }
   .about-aside{ order:2; }
 
@@ -1006,8 +1008,14 @@ button.social{
 
 @media (max-width:640px){
   :root{ --nav-h:60px; }
-  .home-page.is-active{ min-height:calc(100vh - var(--nav-h) - 84px); }
-  .name{ letter-spacing:-.035em; }
+  .home-shell{ padding-bottom:36px; }
+  .home-grid{ grid-template-columns:1fr; }
+  .home-card{ min-height:0; }
+  .home-id{
+    position:static;
+    align-self:flex-start;
+    margin-top:16px;
+  }
 
   /* 移动端下拉菜单 */
   .nav-toggle{ display:inline-flex; }
