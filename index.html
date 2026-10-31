@@ -634,7 +634,16 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
 }
 
 .review-head{
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  display:flex; align-items:center; gap:8px;
+}
+.review-name{
+  font-size:14.5px;
+  font-weight:650;
+  color:var(--ink);
+  max-width:14em;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .review-relation{
   font-size:12.5px; font-weight:600;
@@ -643,7 +652,7 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   padding:3px 11px;
   border-radius:999px;
 }
-.review-time{ font-size:12px; color:var(--muted); white-space:nowrap; }
+.review-time{ margin-left:auto; font-size:12px; color:var(--muted); white-space:nowrap; }
 .review-text{
   margin-top:10px;
   font-size:15px;
@@ -727,6 +736,12 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   font-size:12.5px;
   font-weight:600;
   color:var(--ink);
+}
+.review-optional{
+  margin-left:4px;
+  font-size:11.5px;
+  font-weight:400;
+  color:var(--muted);
 }
 .review-field input,
 .review-field textarea{
@@ -1184,9 +1199,8 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
             <p class="reviews-meta"><span id="review-count">共 0 条</span></p>
             <ul class="review-list" id="review-list"></ul>
             <p class="reviews-empty" id="reviews-empty">还没有评论，右侧点一下，来写第一条吧。</p>
-            <p class="reviews-note">
-              评论保存在你这台设备的浏览器里（localStorage），换设备或清理缓存后不会保留；
-              想做成所有人可见，需要接一个后端或第三方评论服务。
+            <p class="reviews-note" id="reviews-note">
+              评论暂时保存在这台设备的浏览器里（localStorage）；接上 Supabase 后会公开显示给所有人。
             </p>
           </div>
 
@@ -1202,6 +1216,12 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
                 <label for="review-relation">你与他的关系</label>
                 <input id="review-relation" name="relation" type="text" maxlength="20"
                        placeholder="同学 / 朋友 / 网友…" autocomplete="off" required>
+              </div>
+
+              <div class="review-field">
+                <label for="review-nickname">留下你的昵称<span class="review-optional">（选填）</span></label>
+                <input id="review-nickname" name="nickname" type="text" maxlength="20"
+                       placeholder="不填就只显示「关系」" autocomplete="off">
               </div>
 
               <div class="review-field">
@@ -1460,21 +1480,86 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
     }
   });
 
-  /* ---------------- 他人评价：评论列表 + 本地存储 ---------------- */
-  var REVIEW_KEY = 'evan-reviews-v1';
+  /* ---------------- 他人评价：Supabase（云端） / localStorage（本机） ----------------
+     想开云端：注册 supabase.com → 新建项目 → SQL Editor 执行仓库 README 里的建表 SQL
+     → 把下面的 Project URL 和 anon public key 填进来，保存刷新即可。
+     两行留空时，评论只存在访客自己的浏览器里（当前默认状态）。
+  ------------------------------------------------------------------------------- */
+  var SUPABASE_URL = '';       // 例：https://abcdefghijk.supabase.co
+  var SUPABASE_ANON_KEY = '';  // 例：eyJhbGciOiJIUzI1NiIsInR5cCI6...
+  var REVIEWS_TABLE = 'reviews';
+
+  var REVIEW_KEY = 'evan-reviews-v2';
+  var RATE_KEY = 'evan-review-last';
+  var RATE_MS = 60 * 1000;     // 同一个浏览器 1 分钟只能发一条
+
+  var isCloud = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
   var reviewList = document.getElementById('review-list');
   var reviewEmpty = document.getElementById('reviews-empty');
   var reviewCount = document.getElementById('review-count');
+  var reviewNote = document.getElementById('reviews-note');
   var reviewCta = document.getElementById('review-cta');
   var reviewForm = document.getElementById('review-form');
   var reviewOpen = document.getElementById('review-open');
   var reviewCancel = document.getElementById('review-cancel');
   var reviewRelation = document.getElementById('review-relation');
+  var reviewNickname = document.getElementById('review-nickname');
   var reviewText = document.getElementById('review-text');
   var reviewError = document.getElementById('review-error');
 
-  function loadReviews() {
+  var reviewsCache = [];
+
+  function apiHeaders(extra) {
+    var headers = {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json'
+    };
+    if (extra) {
+      for (var key in extra) {
+        if (Object.prototype.hasOwnProperty.call(extra, key)) headers[key] = extra[key];
+      }
+    }
+    return headers;
+  }
+
+  function fetchCloudReviews() {
+    var endpoint = SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/' + REVIEWS_TABLE +
+      '?select=relation,nickname,content,created_at&order=created_at.desc&limit=100';
+
+    return window.fetch(endpoint, { headers: apiHeaders() }).then(function (response) {
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.json();
+    }).then(function (rows) {
+      return (rows || []).map(function (row) {
+        return {
+          relation: row.relation || '',
+          nickname: row.nickname || '',
+          text: row.content || '',
+          time: new Date(row.created_at).getTime()
+        };
+      });
+    });
+  }
+
+  function postCloudReview(item) {
+    var endpoint = SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/' + REVIEWS_TABLE;
+
+    return window.fetch(endpoint, {
+      method: 'POST',
+      headers: apiHeaders({ 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({
+        relation: item.relation,
+        nickname: item.nickname || null,
+        content: item.text
+      })
+    }).then(function (response) {
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+    });
+  }
+
+  function readLocalReviews() {
     try {
       var raw = window.localStorage.getItem(REVIEW_KEY);
       var list = raw ? JSON.parse(raw) : [];
@@ -1484,7 +1569,7 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
     }
   }
 
-  function saveReviews(list) {
+  function writeLocalReviews(list) {
     try {
       window.localStorage.setItem(REVIEW_KEY, JSON.stringify(list.slice(0, 200)));
     } catch (error) {
@@ -1500,46 +1585,75 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
            ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
-  function renderReviews() {
+  function renderReviews(list) {
     if (!reviewList) return;
 
-    var list = loadReviews().sort(function (a, b) { return (b.time || 0) - (a.time || 0); });
+    reviewsCache = list.slice().sort(function (a, b) { return (b.time || 0) - (a.time || 0); });
     reviewList.textContent = '';
 
-    list.forEach(function (item) {
+    reviewsCache.forEach(function (item) {
       var li = document.createElement('li');
       li.className = 'review-item';
 
       var head = document.createElement('div');
       head.className = 'review-head';
 
+      if (item.nickname) {
+        var name = document.createElement('span');
+        name.className = 'review-name';
+        name.textContent = item.nickname;
+        head.appendChild(name);
+      }
+
       var relation = document.createElement('span');
       relation.className = 'review-relation';
       relation.textContent = item.relation || '访客';
+      head.appendChild(relation);
 
       var time = document.createElement('time');
       time.className = 'review-time';
       time.textContent = formatTime(item.time);
+      head.appendChild(time);
 
       var body = document.createElement('p');
       body.className = 'review-text';
       body.textContent = item.text || '';
 
-      head.appendChild(relation);
-      head.appendChild(time);
       li.appendChild(head);
       li.appendChild(body);
       reviewList.appendChild(li);
     });
 
-    if (reviewEmpty) reviewEmpty.hidden = list.length > 0;
-    if (reviewCount) reviewCount.textContent = '共 ' + list.length + ' 条';
+    if (reviewEmpty) reviewEmpty.hidden = reviewsCache.length > 0;
+    if (reviewCount) reviewCount.textContent = '共 ' + reviewsCache.length + ' 条';
+  }
+
+  function setReviewNote(text) {
+    if (reviewNote) reviewNote.textContent = text;
+  }
+
+  function loadReviews() {
+    if (!isCloud) {
+      renderReviews(readLocalReviews());
+      setReviewNote('评论暂存在这台设备的浏览器里（localStorage），换设备或清缓存不会保留；' +
+                    '接上 Supabase 后会公开显示给所有人。');
+      return;
+    }
+
+    fetchCloudReviews().then(function (list) {
+      renderReviews(list);
+      setReviewNote('评论已公开显示，所有人打开这个页面都能看到。');
+    }).catch(function () {
+      renderReviews(readLocalReviews());
+      setReviewNote('云端暂时连不上，先显示本机缓存的评论；稍后刷新重试。');
+    });
   }
 
   function openReviewForm(open) {
     if (!reviewForm || !reviewCta) return;
     reviewForm.hidden = !open;
     reviewCta.hidden = open;
+
     if (open) {
       if (reviewError) reviewError.textContent = '';
       if (reviewRelation) reviewRelation.focus();
@@ -1557,11 +1671,32 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
     });
   }
 
+  function readRate() {
+    try { return Number(window.localStorage.getItem(RATE_KEY) || 0); } catch (error) { return 0; }
+  }
+
+  function writeRate(value) {
+    try { window.localStorage.setItem(RATE_KEY, String(value)); } catch (error) { /* ignore */ }
+  }
+
+  function resetForm() {
+    if (reviewRelation) reviewRelation.value = '';
+    if (reviewNickname) reviewNickname.value = '';
+    if (reviewText) reviewText.value = '';
+    if (reviewError) reviewError.textContent = '';
+  }
+
+  function submitFailed(message) {
+    if (reviewError) reviewError.textContent = message;
+    showToast(message);
+  }
+
   if (reviewForm) {
     reviewForm.addEventListener('submit', function (event) {
       event.preventDefault();
 
       var relation = (reviewRelation ? reviewRelation.value : '').trim();
+      var nickname = (reviewNickname ? reviewNickname.value : '').trim();
       var text = (reviewText ? reviewText.value : '').trim();
 
       if (!relation || !text) {
@@ -1571,26 +1706,55 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
         return;
       }
 
-      var list = loadReviews();
-      list.unshift({
+      if (Date.now() - readRate() < RATE_MS) {
+        if (reviewError) reviewError.textContent = '刚发过一条，等一分钟再发吧。';
+        return;
+      }
+
+      var item = {
         relation: relation.slice(0, 20),
+        nickname: nickname.slice(0, 20),
         text: text.slice(0, 500),
         time: Date.now()
-      });
-      saveReviews(list);
+      };
 
-      if (reviewRelation) reviewRelation.value = '';
-      if (reviewText) reviewText.value = '';
-      if (reviewError) reviewError.textContent = '';
+      var submitButton = reviewForm.querySelector('button[type="submit"]');
+      if (submitButton) submitButton.disabled = true;
 
-      renderReviews();
-      openReviewForm(false);
-      showToast('已发布，谢谢你的评价');
+      function done() {
+        if (submitButton) submitButton.disabled = false;
+        writeRate(Date.now());
+        resetForm();
+        openReviewForm(false);
+        showToast('已发布，谢谢你的评价');
+      }
+
+      function fail(message) {
+        if (submitButton) submitButton.disabled = false;
+        submitFailed(message);
+      }
+
+      if (isCloud) {
+        postCloudReview(item).then(function () {
+          reviewsCache.unshift(item);
+          renderReviews(reviewsCache);
+          done();
+        }).catch(function () {
+          fail('发布失败，请检查网络后重试。');
+        });
+        return;
+      }
+
+      var list = readLocalReviews();
+      list.unshift(item);
+      writeLocalReviews(list);
+      renderReviews(list);
+      done();
     });
   }
 
-  // 首次进入页面时渲染已有评论
-  renderReviews();
+  // 首次进入页面时加载
+  loadReviews();
 
   /* ---------------- 空链接提示 ---------------- */
   document.addEventListener('click', function (event) {
