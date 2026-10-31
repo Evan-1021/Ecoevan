@@ -1579,6 +1579,18 @@ button.social{
   </div>
 </footer>
 
+<!-- 抖音二维码弹窗 -->
+<div class="qr-modal" id="qr-modal" hidden>
+  <div class="qr-backdrop" data-qr-close></div>
+  <div class="qr-card" role="dialog" aria-modal="true" aria-labelledby="qr-title">
+    <button class="qr-close" type="button" data-qr-close aria-label="关闭二维码">×</button>
+    <p class="qr-title" id="qr-title">抖音 · 埃闻 CS2</p>
+    <img class="qr-img" src="douyin-qr.jpg" alt="抖音二维码：@埃闻CS2，抖音号 60367839020" loading="lazy" decoding="async">
+    <p class="qr-note">保存图片到相册，打开抖音「扫一扫」；<br>也可以直接搜抖音号 60367839020</p>
+  </div>
+</div>
+
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -2102,16 +2114,5 @@ button.social{
   });
 })();
 </script>
-<!-- 抖音二维码弹窗 -->
-<div class="qr-modal" id="qr-modal" hidden>
-  <div class="qr-backdrop" data-qr-close></div>
-  <div class="qr-card" role="dialog" aria-modal="true" aria-labelledby="qr-title">
-    <button class="qr-close" type="button" data-qr-close aria-label="关闭二维码">×</button>
-    <p class="qr-title" id="qr-title">抖音 · 埃闻 CS2</p>
-    <img class="qr-img" src="douyin-qr.jpg" alt="抖音二维码：@埃闻CS2，抖音号 60367839020" loading="lazy" decoding="async">
-    <p class="qr-note">保存图片到相册，打开抖音「扫一扫」；<br>也可以直接搜抖音号 60367839020</p>
-  </div>
-</div>
-
 </body>
 </html>
