@@ -1480,20 +1480,18 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
     }
   });
 
-  /* ---------------- 他人评价：Supabase（云端） / localStorage（本机） ----------------
-     想开云端：注册 supabase.com → 新建项目 → SQL Editor 执行仓库 README 里的建表 SQL
-     → 把下面的 Project URL 和 anon public key 填进来，保存刷新即可。
-     两行留空时，评论只存在访客自己的浏览器里（当前默认状态）。
-  ------------------------------------------------------------------------------- */
-  var SUPABASE_URL = 'https://tgxjmmmlccshuxjyyxtk.supabase.co';
-  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRneGptbW1sY2NzaHV4anl5eHRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MzM2NTEsImV4cCI6MjEwOTAwOTY1MX0.BUh8_ORP5xsiw-3PkiLbpEprqmA8b8HTwIt8wpw9ZTY';
-  var REVIEWS_TABLE = 'reviews';
+  /* ---------------- 他人评价：同域名接口（/api/reviews） ----------------
+     评论由 Cloudflare Pages Function 转发到 Supabase：
+     访客只会访问本域名，不再直连 supabase.co（部分网络访问不到它）。
+     用 file:// 直接打开本地文件时没有这个接口，会退回本机存储。
+  ------------------------------------------------------------------------ */
+  var REVIEWS_API = '/api/reviews';
 
   var REVIEW_KEY = 'evan-reviews-v2';
   var RATE_KEY = 'evan-review-last';
   var RATE_MS = 60 * 1000;     // 同一个浏览器 1 分钟只能发一条
 
-  var isCloud = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
+  var isCloud = window.location.protocol === 'http:' || window.location.protocol === 'https:';
 
   var reviewList = document.getElementById('review-list');
   var reviewEmpty = document.getElementById('reviews-empty');
@@ -1510,25 +1508,11 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
 
   var reviewsCache = [];
 
-  function apiHeaders(extra) {
-    var headers = {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json'
-    };
-    if (extra) {
-      for (var key in extra) {
-        if (Object.prototype.hasOwnProperty.call(extra, key)) headers[key] = extra[key];
-      }
-    }
-    return headers;
-  }
-
   function fetchCloudReviews() {
-    var endpoint = SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/' + REVIEWS_TABLE +
-      '?select=relation,nickname,content,created_at&order=created_at.desc&limit=100';
-
-    return window.fetch(endpoint, { headers: apiHeaders() }).then(function (response) {
+    return window.fetch(REVIEWS_API, {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store'
+    }).then(function (response) {
       if (!response.ok) throw new Error('HTTP ' + response.status);
       return response.json();
     }).then(function (rows) {
@@ -1544,14 +1528,12 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   }
 
   function postCloudReview(item) {
-    var endpoint = SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/' + REVIEWS_TABLE;
-
-    return window.fetch(endpoint, {
+    return window.fetch(REVIEWS_API, {
       method: 'POST',
-      headers: apiHeaders({ 'Prefer': 'return=minimal' }),
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
         relation: item.relation,
-        nickname: item.nickname || null,
+        nickname: item.nickname || '',
         content: item.text
       })
     }).then(function (response) {
@@ -1635,8 +1617,7 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   function loadReviews() {
     if (!isCloud) {
       renderReviews(readLocalReviews());
-      setReviewNote('评论暂存在这台设备的浏览器里（localStorage），换设备或清缓存不会保留；' +
-                    '接上 Supabase 后会公开显示给所有人。');
+      setReviewNote('本地预览模式：评论只存在这台设备的浏览器里；部署到 Pages 后即可公开评论。');
       return;
     }
 
