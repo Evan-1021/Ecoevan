@@ -33,5 +33,13 @@
   "recent.music.text": "歌单常年循环，经典的歌都喜欢",
   "recent.gallery.title": "图库",
   "recent.gallery.text": "随手拍的一些画面，攒够一组再放上来。现在先占个位置。",
-  "recent.diary.title": "小日记"
+  "recent.diary.title": "小日记",
+  "detail.story.title": "我的故事/回忆",
+  "detail.story.text": "这里放一些自己的故事和回忆：走过的路、拍下的照片，还有那些踩过之后才记住的坑。",
+  "detail.story.btn": "去看看",
+  "detail.works.title": "作品集",
+  "detail.works.text": "拍过的照片、做过的东西，都放在这里。照片在后台「图库 / 作品集」里上传，保存后自动出现。",
+  "detail.resume.title": "简历下载",
+  "detail.resume.text": "一页纸的完整版简历，包含工作经历、项目与技能清单。下载后可直接用邮件联系我。",
+  "detail.resume.btn": "下载简历（PDF）"
 }

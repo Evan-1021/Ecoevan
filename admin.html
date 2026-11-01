@@ -30,7 +30,7 @@
     line-height:1.65;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{ max-width:820px; margin:0 auto; padding:28px 18px 120px; }
+  .wrap{ max-width:860px; margin:0 auto; padding:28px 18px 120px; }
 
   header.top{ display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
   .brand{ font-size:18px; font-weight:700; color:var(--ink); letter-spacing:-.01em; }
@@ -49,15 +49,17 @@
 
   h2.group{
     font-size:14px; font-weight:700; color:var(--ink);
-    margin:26px 0 10px; padding-left:10px; border-left:3px solid var(--accent);
+    margin:28px 0 10px; padding-left:10px; border-left:3px solid var(--accent);
     letter-spacing:.02em;
   }
+  h2.group small{ font-weight:400; color:var(--muted); font-size:12px; margin-left:8px; letter-spacing:0; }
 
   .field{ margin-bottom:14px; }
+  .field:last-child{ margin-bottom:0; }
   .field label{ display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px; }
   .field .hint{ font-size:12px; color:var(--muted); font-weight:400; margin-left:6px; }
 
-  input[type=text], input[type=password], textarea{
+  input[type=text], input[type=password], input[type=date], textarea{
     width:100%;
     font:inherit;
     font-size:14.5px;
@@ -68,6 +70,7 @@
     padding:10px 12px;
     transition:border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
   }
+  input[type=date]{ padding:9px 10px; }
   textarea{ min-height:92px; resize:vertical; line-height:1.7; }
   input:focus, textarea:focus{
     outline:none;
@@ -87,11 +90,11 @@
   button:hover{ background:var(--accent-ink); transform:translateY(-1px); }
   button:active{ transform:translateY(0); }
   button[disabled]{ opacity:.55; cursor:not-allowed; transform:none; }
-  button.ghost{
-    background:#fff; color:var(--text);
-    border:1px solid var(--line);
-  }
+  button.ghost{ background:#fff; color:var(--text); border:1px solid var(--line); }
   button.ghost:hover{ background:var(--surface-2); color:var(--ink); }
+  button.small{ padding:7px 14px; font-size:13px; }
+  button.danger{ background:#fff; color:#d0342c; border:1px solid #f2c9c6; }
+  button.danger:hover{ background:#fdf1f0; color:#b0281f; }
 
   .status{ font-size:13.5px; color:var(--muted); min-height:22px; }
   .status.ok{ color:#1a7f4b; }
@@ -107,18 +110,56 @@
     font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 
+  /* 小日记行 */
+  .diary-row{
+    display:grid;
+    grid-template-columns:150px 1fr auto;
+    gap:10px; align-items:start;
+    padding:12px 0;
+    border-top:1px solid var(--line);
+  }
+  .diary-row:first-child{ border-top:0; padding-top:0; }
+  .diary-row textarea{ min-height:64px; }
+
+  /* 照片列表 */
+  .photo-row{
+    display:grid;
+    grid-template-columns:96px 1fr auto;
+    gap:12px; align-items:center;
+    padding:12px 0;
+    border-top:1px solid var(--line);
+  }
+  .photo-row:first-child{ border-top:0; }
+  .photo-row img{
+    width:96px; height:72px; object-fit:cover;
+    border-radius:8px; border:1px solid var(--line); background:var(--surface-2);
+  }
+  .photo-row .cap{ width:100%; }
+  .empty-note{ color:var(--muted); font-size:13.5px; padding:6px 0; }
+
+  .filefield{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .filefield input[type=file]{ display:none; }
+  .filename{ font-size:13px; color:var(--muted); }
+
   .savebar{
     position:fixed; left:0; right:0; bottom:0;
-    background:rgba(245,246,248,.92);
+    background:rgba(245,246,248,.94);
     backdrop-filter:blur(10px);
     border-top:1px solid var(--line);
     padding:12px 18px;
   }
   .savebar .inner{
-    max-width:820px; margin:0 auto;
+    max-width:860px; margin:0 auto;
     display:flex; align-items:center; gap:14px; justify-content:space-between; flex-wrap:wrap;
   }
-  .savebar .status{ flex:1 1 220px; }
+  .savebar .status{ flex:1 1 240px; }
+
+  @media (max-width:560px){
+    .diary-row{ grid-template-columns:1fr; }
+    .photo-row{ grid-template-columns:72px 1fr; }
+    .photo-row img{ width:72px; height:56px; }
+    .photo-row .actions{ grid-column:1 / -1; }
+  }
 </style>
 </head>
 <body>
@@ -138,7 +179,7 @@
       <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_...">
     </div>
     <div class="row">
-      <button id="load" type="button">载入当前文案</button>
+      <button id="load" type="button">载入当前内容</button>
       <button id="forget" type="button" class="ghost">忘记令牌</button>
       <span class="status" id="status"></span>
     </div>
@@ -183,7 +224,6 @@
         <label for="f-home.sub">大标题下面一句</label>
         <textarea id="f-home.sub" data-key="home.sub" style="min-height:66px"></textarea>
       </div>
-
       <div class="field">
         <label for="f-home.c1.title">卡片 1 标题</label>
         <input type="text" id="f-home.c1.title" data-key="home.c1.title">
@@ -192,7 +232,6 @@
         <label for="f-home.c1.desc">卡片 1 描述</label>
         <input type="text" id="f-home.c1.desc" data-key="home.c1.desc">
       </div>
-
       <div class="field">
         <label for="f-home.c2.title">卡片 2 标题</label>
         <input type="text" id="f-home.c2.title" data-key="home.c2.title">
@@ -201,7 +240,6 @@
         <label for="f-home.c2.desc">卡片 2 描述</label>
         <input type="text" id="f-home.c2.desc" data-key="home.c2.desc">
       </div>
-
       <div class="field">
         <label for="f-home.c3.title">卡片 3 标题</label>
         <input type="text" id="f-home.c3.title" data-key="home.c3.title">
@@ -210,7 +248,6 @@
         <label for="f-home.c3.desc">卡片 3 描述</label>
         <input type="text" id="f-home.c3.desc" data-key="home.c3.desc">
       </div>
-
       <div class="field">
         <label for="f-home.c4.title">卡片 4 标题</label>
         <input type="text" id="f-home.c4.title" data-key="home.c4.title">
@@ -296,7 +333,7 @@
         <input type="text" id="f-recent.lead" data-key="recent.lead">
       </div>
       <div class="field">
-        <label for="f-recent.game.title">卡片标题</label>
+        <label for="f-recent.game.title">游戏卡片标题</label>
         <input type="text" id="f-recent.game.title" data-key="recent.game.title">
       </div>
       <div class="field">
@@ -325,6 +362,78 @@
       </div>
     </section>
 
+    <h2 class="group">小日记 <small>每一条 = 日期 + 一段话，可以随时加、删</small></h2>
+    <section class="panel">
+      <div id="diary-rows"></div>
+      <p class="empty-note" id="diary-empty" hidden>还没有日记，点下面按钮加一条。</p>
+      <div class="row" style="margin-top:12px">
+        <button type="button" class="ghost small" id="diary-add">＋ 加一条</button>
+      </div>
+    </section>
+
+    <h2 class="group">详情页 <small>从「关于我」点「详情」进入的那一页</small></h2>
+    <section class="panel">
+      <div class="field">
+        <label for="f-detail.story.title">「我的故事/回忆」标题</label>
+        <input type="text" id="f-detail.story.title" data-key="detail.story.title">
+      </div>
+      <div class="field">
+        <label for="f-detail.story.text">说明文字</label>
+        <textarea id="f-detail.story.text" data-key="detail.story.text"></textarea>
+      </div>
+      <div class="field">
+        <label for="f-detail.story.btn">按钮文字</label>
+        <input type="text" id="f-detail.story.btn" data-key="detail.story.btn">
+      </div>
+      <div class="field">
+        <label for="f-detail.story.url">按钮链接 <span class="hint">填了就会变成可点按钮；留空显示「待填写」</span></label>
+        <input type="text" id="f-detail.story.url" data-key="detail.story.url" placeholder="https://...">
+      </div>
+
+      <div class="field">
+        <label for="f-detail.works.title">「作品集」标题</label>
+        <input type="text" id="f-detail.works.title" data-key="detail.works.title">
+      </div>
+      <div class="field">
+        <label for="f-detail.works.text">作品集说明</label>
+        <textarea id="f-detail.works.text" data-key="detail.works.text"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="f-detail.resume.title">「简历下载」标题</label>
+        <input type="text" id="f-detail.resume.title" data-key="detail.resume.title">
+      </div>
+      <div class="field">
+        <label for="f-detail.resume.text">简历说明</label>
+        <textarea id="f-detail.resume.text" data-key="detail.resume.text"></textarea>
+      </div>
+      <div class="field">
+        <label for="f-detail.resume.btn">下载按钮文字</label>
+        <input type="text" id="f-detail.resume.btn" data-key="detail.resume.btn">
+      </div>
+      <div class="field">
+        <label>简历文件 <span class="hint">上传 PDF 后自动填好链接</span></label>
+        <div class="filefield">
+          <button type="button" class="ghost small" id="resume-pick">上传 PDF</button>
+          <input type="file" id="resume-file" accept="application/pdf,.pdf">
+          <span class="filename" id="resume-name">未上传</span>
+        </div>
+        <input type="text" id="f-detail.resume.url" data-key="detail.resume.url"
+               placeholder="/files/resume.pdf" style="margin-top:10px">
+      </div>
+    </section>
+
+    <h2 class="group">照片（图库 / 作品集） <small>两处共用同一组照片</small></h2>
+    <section class="panel">
+      <div class="row" style="margin-bottom:14px">
+        <button type="button" class="ghost small" id="photo-pick">上传照片</button>
+        <input type="file" id="photo-file" accept="image/*" multiple>
+        <span class="status" id="photo-status"></span>
+      </div>
+      <div id="photo-rows"></div>
+      <p class="empty-note" id="photo-empty">还没有照片。</p>
+    </section>
+
   </form>
 
   <div class="savebar" id="savebar" hidden>
@@ -345,9 +454,14 @@
 
   var OWNER = 'Evan-1021';
   var REPO = 'Ecoevan';
-  var PATH = 'content/site.json';
-  var API = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + PATH;
+  var BRANCH = 'main';
+  var BASE = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/';
+  var RAW = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/';
+  var SITE_PATH = 'content/site.json';
+  var DIARY_PATH = 'content/diary.json';
+  var GALLERY_PATH = 'content/gallery.json';
   var TOKEN_KEY = 'evan_site_admin_token';
+  var MAX_UPLOAD = 8 * 1024 * 1024;
 
   var tokenInput = document.getElementById('token');
   var loadBtn = document.getElementById('load');
@@ -359,19 +473,29 @@
   var statusEl = document.getElementById('status');
   var saveStatus = document.getElementById('save-status');
 
-  var fileSha = null;
-  var original = {};
+  var diaryRows = document.getElementById('diary-rows');
+  var diaryEmpty = document.getElementById('diary-empty');
+  var diaryAdd = document.getElementById('diary-add');
+  var photoRows = document.getElementById('photo-rows');
+  var photoEmpty = document.getElementById('photo-empty');
+  var photoStatus = document.getElementById('photo-status');
+  var resumePick = document.getElementById('resume-pick');
+  var resumeFile = document.getElementById('resume-file');
+  var resumeName = document.getElementById('resume-name');
+
+  var state = {
+    site: { sha: null, data: {} },
+    diary: { sha: null, data: [] },
+    gallery: { sha: null, data: { photos: [] } }
+  };
 
   function setStatus(el, text, kind) {
     el.textContent = text || '';
     el.className = 'status' + (kind ? ' ' + kind : '');
   }
+  function getToken() { return (tokenInput.value || '').trim(); }
 
-  function getToken() {
-    return (tokenInput.value || '').trim();
-  }
-
-  /* ---------- base64（UTF-8 安全） ---------- */
+  /* ---------------- 基础工具 ---------------- */
   function encodeB64(str) {
     var bytes = new TextEncoder().encode(str);
     var binary = '';
@@ -379,45 +503,262 @@
     return btoa(binary);
   }
   function decodeB64(b64) {
-    var clean = b64.replace(/\s/g, '');
-    var binary = atob(clean);
+    var binary = atob(String(b64).replace(/\s/g, ''));
     var bytes = new Uint8Array(binary.length);
     for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     return new TextDecoder().decode(bytes);
   }
-
-  function headers() {
-    return {
+  function fileToB64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var result = String(reader.result);
+        resolve(result.slice(result.indexOf(',') + 1));
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function headers(extra) {
+    var base = {
       'Authorization': 'Bearer ' + getToken(),
       'Accept': 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28'
     };
+    if (extra) Object.keys(extra).forEach(function (k) { base[k] = extra[k]; });
+    return base;
   }
-
   function explain(status) {
     if (status === 401) return '令牌无效或已过期，请重新创建';
     if (status === 403) return '令牌权限不够：Contents 需要 Read and write';
-    if (status === 404) return '找不到仓库或文件（检查令牌勾选的仓库是不是 Ecoevan）';
-    if (status === 409) return '文件已被别处改过，点「放弃修改」重新载入后再改';
+    if (status === 404) return '找不到仓库或文件（确认令牌勾选的是 Ecoevan）';
+    if (status === 409) return '文件被别处改过，点「放弃修改」重新载入再改';
+    if (status === 413) return '文件太大（上限约 8 MB）';
     return '请求失败（HTTP ' + status + '）';
   }
 
+  function ghGet(path) {
+    return fetch(BASE + path + '?ref=' + BRANCH + '&t=' + Date.now(), {
+      headers: headers(), cache: 'no-store'
+    }).then(function (res) {
+      if (!res.ok) throw new Error(String(res.status));
+      return res.json();
+    });
+  }
+
+  function ghPutText(path, text, message, sha) {
+    var body = { message: message, content: encodeB64(text), branch: BRANCH };
+    if (sha) body.sha = sha;
+    return fetch(BASE + path, {
+      method: 'PUT',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body)
+    }).then(function (res) {
+      if (!res.ok) throw new Error(String(res.status));
+      return res.json();
+    });
+  }
+
+  function ghPutBinary(path, base64, message, sha) {
+    var body = { message: message, content: base64, branch: BRANCH };
+    if (sha) body.sha = sha;
+    return fetch(BASE + path, {
+      method: 'PUT',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body)
+    }).then(function (res) {
+      if (!res.ok) throw new Error(String(res.status));
+      return res.json();
+    });
+  }
+
+  /* ---------------- 表单填充 ---------------- */
   function fillForm(data) {
     form.querySelectorAll('[data-key]').forEach(function (el) {
       var key = el.getAttribute('data-key');
       el.value = data[key] != null ? data[key] : '';
     });
   }
-
   function readForm() {
     var out = {};
     form.querySelectorAll('[data-key]').forEach(function (el) {
-      var key = el.getAttribute('data-key');
-      out[key] = el.value.replace(/\r\n/g, '\n').trim();
+      out[el.getAttribute('data-key')] = el.value.replace(/\r\n/g, '\n').trim();
     });
     return out;
   }
 
+  /* ---------------- 小日记 ---------------- */
+  function addDiaryRow(item) {
+    item = item || { date: '', text: '' };
+
+    var row = document.createElement('div');
+    row.className = 'diary-row';
+
+    var date = document.createElement('input');
+    date.type = 'date';
+    date.className = 'diary-date';
+    date.value = item.date || '';
+
+    var text = document.createElement('textarea');
+    text.className = 'diary-text';
+    text.placeholder = '今天发生了点什么…';
+    text.value = item.text || '';
+
+    var actions = document.createElement('div');
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'danger small';
+    del.textContent = '删除';
+    del.addEventListener('click', function () {
+      row.remove();
+      syncDiaryEmpty();
+    });
+    actions.appendChild(del);
+
+    row.appendChild(date);
+    row.appendChild(text);
+    row.appendChild(actions);
+    diaryRows.appendChild(row);
+    syncDiaryEmpty();
+  }
+
+  function syncDiaryEmpty() {
+    var n = diaryRows.querySelectorAll('.diary-row').length;
+    diaryEmpty.hidden = n > 0;
+  }
+
+  function renderDiary(items) {
+    diaryRows.textContent = '';
+    (Array.isArray(items) ? items : []).forEach(addDiaryRow);
+    syncDiaryEmpty();
+  }
+
+  function readDiary() {
+    var out = [];
+    diaryRows.querySelectorAll('.diary-row').forEach(function (row) {
+      var date = row.querySelector('.diary-date').value;
+      var text = row.querySelector('.diary-text').value.replace(/\r\n/g, '\n').trim();
+      if (text) out.push({ date: date, text: text });
+    });
+    return out;
+  }
+
+  /* ---------------- 照片 ---------------- */
+  function renderPhotos(photos) {
+    photoRows.textContent = '';
+    photos.forEach(function (photo, index) {
+      var row = document.createElement('div');
+      row.className = 'photo-row';
+
+      var img = document.createElement('img');
+      img.src = RAW + String(photo.image || '').replace(/^\//, '');
+      img.alt = '';
+      img.loading = 'lazy';
+
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'cap';
+      input.placeholder = '给这张照片写一句话（可不填）';
+      input.value = photo.caption || '';
+      input.addEventListener('input', function () {
+        state.gallery.data.photos[index].caption = input.value;
+      });
+
+      var actions = document.createElement('div');
+      actions.className = 'actions';
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'danger small';
+      del.textContent = '删除';
+      del.addEventListener('click', function () {
+        state.gallery.data.photos.splice(index, 1);
+        renderPhotos(state.gallery.data.photos);
+      });
+      actions.appendChild(del);
+
+      row.appendChild(img);
+      row.appendChild(input);
+      row.appendChild(actions);
+      photoRows.appendChild(row);
+    });
+    photoEmpty.hidden = photos.length > 0;
+  }
+
+  function safeName(name) {
+    return String(name || 'file').toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(-60) || 'file';
+  }
+
+  /* ---------------- 上传 ---------------- */
+  function uploadPhoto(files) {
+    var list = Array.prototype.slice.call(files || []);
+    if (!list.length) return;
+
+    var done = 0;
+    setStatus(photoStatus, '正在上传 0/' + list.length + '…');
+
+    var chain = Promise.resolve();
+    list.forEach(function (file) {
+      chain = chain.then(function () {
+        if (file.size > MAX_UPLOAD) {
+          throw new Error('too-big:' + file.name);
+        }
+        return fileToB64(file).then(function (b64) {
+          var path = 'photos/' + Date.now() + '-' + safeName(file.name);
+          return ghPutBinary(path, b64, 'upload photo: ' + file.name).then(function () {
+            state.gallery.data.photos.push({ image: '/' + path, caption: '' });
+            done++;
+            setStatus(photoStatus, '正在上传 ' + done + '/' + list.length + '…');
+          });
+        });
+      });
+    });
+
+    chain.then(function () {
+      return ghPutText(GALLERY_PATH,
+        JSON.stringify(state.gallery.data, null, 2) + '\n',
+        'update gallery (' + list.length + ')',
+        state.gallery.sha);
+    }).then(function (json) {
+      state.gallery.sha = json.content.sha;
+      renderPhotos(state.gallery.data.photos);
+      setStatus(photoStatus, '已上传 ' + list.length + ' 张，约 1 分钟后出现在网站上', 'ok');
+    }).catch(function (err) {
+      var msg = String(err.message || err);
+      if (msg.indexOf('too-big:') === 0) {
+        setStatus(photoStatus, msg.split(':')[1] + ' 超过 8 MB，先压缩一下', 'err');
+      } else {
+        setStatus(photoStatus, explain(parseInt(msg, 10)), 'err');
+      }
+    });
+  }
+
+  function uploadResume(file) {
+    if (!file) return;
+    if (file.size > MAX_UPLOAD) {
+      setStatus(saveStatus, 'PDF 超过 8 MB，先压缩一下', 'err');
+      return;
+    }
+
+    setStatus(saveStatus, '正在上传简历…');
+
+    var path = 'files/resume-' + Date.now() + '.pdf';
+
+    fileToB64(file).then(function (b64) {
+      return ghPutBinary(path, b64, 'upload resume');
+    }).then(function () {
+      var input = document.getElementById('f-detail.resume.url');
+      input.value = '/' + path;
+      resumeName.textContent = file.name;
+      setStatus(saveStatus, '简历已上传，点「保存并发布」让网站用上它', 'ok');
+    }).catch(function (err) {
+      setStatus(saveStatus, explain(parseInt(String(err.message), 10)), 'err');
+    });
+  }
+
+  /* ---------------- 载入 / 保存 ---------------- */
   function load() {
     var token = getToken();
     if (!token) {
@@ -426,77 +767,116 @@
       return;
     }
 
-    setStatus(statusEl, '正在读取…', '');
+    setStatus(statusEl, '正在读取…');
     loadBtn.disabled = true;
 
-    fetch(API + '?ref=main&t=' + Date.now(), { headers: headers(), cache: 'no-store' })
-      .then(function (res) {
-        if (!res.ok) throw new Error(String(res.status));
-        return res.json();
-      })
-      .then(function (json) {
-        fileSha = json.sha;
-        var text = decodeB64(json.content);
-        var data = JSON.parse(text);
-        original = data;
-        fillForm(data);
-        form.hidden = false;
-        savebar.hidden = false;
-        localStorage.setItem(TOKEN_KEY, token);
-        setStatus(statusEl, '已载入 ' + Object.keys(data).length + ' 条文案', 'ok');
-        setStatus(saveStatus, '改完点右边「保存并发布」');
-      })
-      .catch(function (err) {
-        var code = parseInt(err.message, 10);
-        setStatus(statusEl, explain(code), 'err');
-      })
-      .then(function () { loadBtn.disabled = false; });
+    Promise.all([
+      ghGet(SITE_PATH),
+      ghGet(DIARY_PATH).catch(function () { return null; }),
+      ghGet(GALLERY_PATH).catch(function () { return null; })
+    ]).then(function (results) {
+      var siteFile = results[0];
+      var diaryFile = results[1];
+      var galleryFile = results[2];
+
+      state.site.sha = siteFile.sha;
+      state.site.data = JSON.parse(decodeB64(siteFile.content));
+
+      state.diary.sha = diaryFile ? diaryFile.sha : null;
+      state.diary.data = diaryFile ? JSON.parse(decodeB64(diaryFile.content)) : [];
+
+      state.gallery.sha = galleryFile ? galleryFile.sha : null;
+      state.gallery.data = galleryFile ? JSON.parse(decodeB64(galleryFile.content)) : { photos: [] };
+      if (!Array.isArray(state.gallery.data.photos)) state.gallery.data.photos = [];
+
+      fillForm(state.site.data);
+      renderDiary(state.diary.data);
+      renderPhotos(state.gallery.data.photos);
+
+      form.hidden = false;
+      savebar.hidden = false;
+      localStorage.setItem(TOKEN_KEY, token);
+      setStatus(statusEl, '已载入：文案 ' + Object.keys(state.site.data).length +
+        ' 条 · 日记 ' + state.diary.data.length + ' 条 · 照片 ' + state.gallery.data.photos.length + ' 张', 'ok');
+      setStatus(saveStatus, '改完点右边「保存并发布」');
+    }).catch(function (err) {
+      setStatus(statusEl, explain(parseInt(String(err.message), 10)), 'err');
+    }).then(function () {
+      loadBtn.disabled = false;
+    });
   }
 
   function save() {
     if (form.hidden) return;
     if (!getToken()) { setStatus(saveStatus, '令牌丢了，请重新填', 'err'); return; }
 
-    var data = readForm();
-    var changed = Object.keys(data).filter(function (k) { return data[k] !== original[k]; });
-    if (!changed.length) { setStatus(saveStatus, '没有改动', ''); return; }
+    var site = readForm();
+    var diary = readDiary();
+    var photos = state.gallery.data.photos.filter(function (p) { return p && p.image; });
 
-    setStatus(saveStatus, '正在保存…', '');
+    var siteChanged = JSON.stringify(site) !== JSON.stringify(state.site.data);
+    var diaryChanged = JSON.stringify(diary) !== JSON.stringify(state.diary.data);
+    var galleryChanged = JSON.stringify(photos) !== JSON.stringify(state.gallery.data.photos);
+
+    if (!siteChanged && !diaryChanged && !galleryChanged) {
+      setStatus(saveStatus, '没有改动');
+      return;
+    }
+
     saveBtn.disabled = true;
+    setStatus(saveStatus, '正在保存…');
 
-    var body = {
-      message: 'update site texts (' + changed.length + ')',
-      content: encodeB64(JSON.stringify(data, null, 2) + '\n'),
-      sha: fileSha,
-      branch: 'main'
-    };
+    var chain = Promise.resolve();
 
-    fetch(API, {
-      method: 'PUT',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, headers()),
-      body: JSON.stringify(body)
-    })
-      .then(function (res) {
-        if (!res.ok) throw new Error(String(res.status));
-        return res.json();
-      })
-      .then(function (json) {
-        fileSha = json.content.sha;
-        original = data;
-        setStatus(saveStatus, '已提交，约 1 分钟后线上生效（改 ' + changed.length + ' 处）', 'ok');
-      })
-      .catch(function (err) {
-        var code = parseInt(err.message, 10);
-        setStatus(saveStatus, explain(code), 'err');
-      })
-      .then(function () { saveBtn.disabled = false; });
+    if (siteChanged) {
+      chain = chain.then(function () {
+        return ghPutText(SITE_PATH, JSON.stringify(site, null, 2) + '\n', 'update site texts', state.site.sha)
+          .then(function (json) {
+            state.site.sha = json.content.sha;
+            state.site.data = site;
+          });
+      });
+    }
+
+    if (diaryChanged) {
+      chain = chain.then(function () {
+        return ghPutText(DIARY_PATH, JSON.stringify(diary, null, 2) + '\n', 'update diary', state.diary.sha)
+          .then(function (json) {
+            state.diary.sha = json.content.sha;
+            state.diary.data = diary;
+          });
+      });
+    }
+
+    if (galleryChanged) {
+      chain = chain.then(function () {
+        state.gallery.data.photos = photos;
+        return ghPutText(GALLERY_PATH, JSON.stringify(state.gallery.data, null, 2) + '\n', 'update gallery', state.gallery.sha)
+          .then(function (json) { state.gallery.sha = json.content.sha; });
+      });
+    }
+
+    chain.then(function () {
+      var parts = [];
+      if (siteChanged) parts.push('文案');
+      if (diaryChanged) parts.push('日记');
+      if (galleryChanged) parts.push('照片说明');
+      setStatus(saveStatus, '已保存（' + parts.join('、') + '），约 1 分钟后线上生效', 'ok');
+    }).catch(function (err) {
+      setStatus(saveStatus, explain(parseInt(String(err.message), 10)), 'err');
+    }).then(function () {
+      saveBtn.disabled = false;
+    });
   }
 
+  /* ---------------- 事件 ---------------- */
   loadBtn.addEventListener('click', load);
   saveBtn.addEventListener('click', save);
 
   reloadBtn.addEventListener('click', function () {
-    fillForm(original);
+    fillForm(state.site.data);
+    renderDiary(state.diary.data);
+    renderPhotos(state.gallery.data.photos);
     setStatus(saveStatus, '已放弃未保存的修改');
   });
 
@@ -505,8 +885,7 @@
     tokenInput.value = '';
     form.hidden = true;
     savebar.hidden = true;
-    fileSha = null;
-    original = {};
+    state = { site: { sha: null, data: {} }, diary: { sha: null, data: [] }, gallery: { sha: null, data: { photos: [] } } };
     setStatus(statusEl, '已忘记令牌');
   });
 
@@ -514,10 +893,32 @@
     if (event.key === 'Enter') { event.preventDefault(); load(); }
   });
 
-  // 打开页面时如果之前存过令牌，自动带出来并载入
-  var saved = localStorage.getItem(TOKEN_KEY);
-  if (saved) {
-    tokenInput.value = saved;
+  diaryAdd.addEventListener('click', function () {
+    var today = new Date();
+    var iso = today.getFullYear() + '-' +
+      String(today.getMonth() + 1).padStart(2, '0') + '-' +
+      String(today.getDate()).padStart(2, '0');
+    addDiaryRow({ date: iso, text: '' });
+  });
+
+  document.getElementById('photo-pick').addEventListener('click', function () {
+    document.getElementById('photo-file').click();
+  });
+  document.getElementById('photo-file').addEventListener('change', function (event) {
+    uploadPhoto(event.target.files);
+    event.target.value = '';
+  });
+
+  resumePick.addEventListener('click', function () { resumeFile.click(); });
+  resumeFile.addEventListener('change', function (event) {
+    var file = event.target.files && event.target.files[0];
+    if (file) uploadResume(file);
+    event.target.value = '';
+  });
+
+  var savedToken = localStorage.getItem(TOKEN_KEY);
+  if (savedToken) {
+    tokenInput.value = savedToken;
     load();
   }
 })();

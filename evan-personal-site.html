@@ -1538,19 +1538,20 @@ button.social{
 
             <section class="detail-panel is-active" id="panel-blog"
                      role="tabpanel" aria-labelledby="tab-blog">
-              <h3 class="detail-title">我的故事/回忆</h3>
-              <p class="detail-text">
+              <h3 class="detail-title" data-text="detail.story.title">我的故事/回忆</h3>
+              <p class="detail-text" data-text="detail.story.text">
                 这里放一些自己的故事和回忆：走过的路、拍下的照片，还有那些踩过之后才记住的坑。
               </p>
-              <!-- 把 href 换成你的故事页 / 博客地址即可 -->
-              <a class="btn btn-primary" href="" data-empty="true">去看看</a>
-              <p class="detail-note">地址待填写：把上面按钮的 <code>href</code> 换成你的网址。</p>
+              <!-- 按钮地址在后台填：detail.story.url -->
+              <a class="btn btn-primary" id="detail-story-btn" href="" data-empty="true"
+                 data-text="detail.story.btn" data-href="detail.story.url">去看看</a>
+              <p class="detail-note" id="detail-story-note">地址待填写：去后台「详情页」把地址填上，这里就会变成可点按钮。</p>
             </section>
 
             <section class="detail-panel" id="panel-works"
                      role="tabpanel" aria-labelledby="tab-works">
-              <h3 class="detail-title">作品集</h3>
-              <p class="detail-text">
+              <h3 class="detail-title" data-text="detail.works.title">作品集</h3>
+              <p class="detail-text" data-text="detail.works.text">
                 拍过的照片、做过的东西，都放在这里。照片在后台「图库 / 作品集」里上传，保存后自动出现。
               </p>
               <div class="photo-grid" id="works-gallery"></div>
@@ -1560,18 +1561,18 @@ button.social{
 
             <section class="detail-panel" id="panel-resume"
                      role="tabpanel" aria-labelledby="tab-resume">
-              <h3 class="detail-title">简历下载</h3>
-              <p class="detail-text">
+              <h3 class="detail-title" data-text="detail.resume.title">简历下载</h3>
+              <p class="detail-text" data-text="detail.resume.text">
                 一页纸的完整版简历，包含工作经历、项目与技能清单。下载后可直接用邮件联系我。
               </p>
-              <!-- 下载链接：把简历文件（如 resume.pdf）放到同一目录，再把 href 改成 ./resume.pdf 即可 -->
-              <a class="btn btn-primary" href=""
+              <!-- 文件在后台「详情页」上传，地址存 detail.resume.url -->
+              <a class="btn btn-primary" id="detail-resume-btn" href=""
                  download="Evan-简历.pdf"
                  data-empty="true"
-                 data-empty-message="简历文件还没放上来，稍后补充">下载简历（PDF）</a>
-              <p class="detail-note">
-                文件待补充：把 <code>resume.pdf</code> 放到与 index.html 同一目录，再把按钮的
-                <code>href</code> 改成 <code>./resume.pdf</code>，点击就会直接下载。
+                 data-empty-message="简历文件还没放上来，稍后补充"
+                 data-text="detail.resume.btn" data-href="detail.resume.url">下载简历（PDF）</a>
+              <p class="detail-note" id="detail-resume-note">
+                文件待补充：去后台「详情页」上传 PDF，这里就会变成可下载按钮。
               </p>
             </section>
 
@@ -1690,7 +1691,7 @@ button.social{
           <article class="recent-card">
             <p class="recent-kicker">Diary</p>
             <h3 class="recent-title" data-text="recent.diary.title">小日记</h3>
-            <ul class="recent-diary">
+            <ul class="recent-diary" id="diary-list">
               <li>
                 <time datetime="2026-10-30">10 月 30 日</time>
                 <p>晚上连跪三把，最后一把翻盘，值得记一下。手感这东西真玄学。</p>
@@ -2238,6 +2239,23 @@ button.social{
       }
     });
 
+    // 后台填的链接：有值就变成可点按钮，并隐藏「待填写」提示
+    document.querySelectorAll('[data-href]').forEach(function (el) {
+      var url = map[el.getAttribute('data-href')];
+      if (url && String(url).trim() !== '') {
+        el.setAttribute('href', String(url).trim());
+        el.removeAttribute('data-empty');
+      }
+    });
+    if (map['detail.story.url']) {
+      var storyNote = document.getElementById('detail-story-note');
+      if (storyNote) storyNote.hidden = true;
+    }
+    if (map['detail.resume.url']) {
+      var resumeNote = document.getElementById('detail-resume-note');
+      if (resumeNote) resumeNote.hidden = true;
+    }
+
     // 邮箱：显示文字改了，复制按钮带的 data-copy 也要跟着改
     var email = map['contact.email'];
     if (email) {
@@ -2250,6 +2268,46 @@ button.social{
     .then(function (res) { return res.ok ? res.json() : null; })
     .then(function (data) { applySiteTexts(data); })
     .catch(function () { /* 网络异常时保持 HTML 原文 */ });
+
+  /* ---------------- 小日记：读取 content/diary.json（后台可增删改） ---------------- */
+  var diaryList = document.getElementById('diary-list');
+
+  function renderDiary(items) {
+    if (!diaryList || !Array.isArray(items) || !items.length) return;
+
+    var frag = document.createDocumentFragment();
+
+    items.forEach(function (item) {
+      if (!item || !String(item.text || '').trim()) return;
+
+      var iso = String(item.date || '').trim();
+      var parts = iso.split('-');
+      var li = document.createElement('li');
+      var time = document.createElement('time');
+
+      if (parts.length === 3) {
+        time.textContent = (+parts[1]) + ' 月 ' + (+parts[2]) + ' 日';
+        time.setAttribute('datetime', iso);
+      } else {
+        time.textContent = iso;
+      }
+
+      var text = document.createElement('p');
+      text.textContent = String(item.text).trim();
+
+      li.appendChild(time);
+      li.appendChild(text);
+      frag.appendChild(li);
+    });
+
+    diaryList.textContent = '';
+    diaryList.appendChild(frag);
+  }
+
+  fetch('content/diary.json', { cache: 'no-store' })
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (items) { renderDiary(items); })
+    .catch(function () { /* 读不到就用页面里原有的两段 */ });
 
   /* ---------------- 图库：读取 Pages CMS 写入的 content/gallery.json ---------------- */
   var galleryTargets = [
