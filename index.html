@@ -1188,8 +1188,8 @@ button.social{
       <img src="avatar.jpg" alt="Evan 的头像" width="480" height="480" decoding="async">
     </div>
     <h1 class="cover-name">Evan</h1>
-    <p class="cover-line">你好，我是 Evan，欢迎来到我的频道。</p>
-    <button class="cover-enter" id="cover-enter" type="button">点击进入</button>
+    <p class="cover-line" data-text="cover.line">你好，我是 Evan，欢迎来到我的频道。</p>
+    <button class="cover-enter" id="cover-enter" type="button" data-text="cover.button">点击进入</button>
   </div>
 </div>
 
@@ -1226,19 +1226,19 @@ button.social{
 
     <div class="home-shell">
       <div class="home-panel">
-        <p class="home-eyebrow home-anim" style="--i:1">Personal Site</p>
+        <p class="home-eyebrow home-anim" style="--i:1" data-text="home.eyebrow">Personal Site</p>
 
-        <h1 class="home-welcome home-anim" style="--i:2">你好，我是 Evan，<br>欢迎来到我的频道。</h1>
+        <h1 class="home-welcome home-anim" style="--i:2" data-text-html="home.title">你好，我是 Evan，<br>欢迎来到我的频道。</h1>
 
-        <p class="home-sub home-anim" style="--i:3">
+        <p class="home-sub home-anim" style="--i:3" data-text="home.sub">
           电气工程及其自动化在读，喜欢游戏、拍照，也喜欢在网上闲逛。
         </p>
 
         <div class="home-grid">
           <a class="home-card home-anim" style="--i:4" href="#/about">
             <span class="home-card-index">01</span>
-            <span class="home-card-title">关于我</span>
-            <span class="home-card-desc">张一铭 · 电气工程及其自动化在读</span>
+            <span class="home-card-title" data-text="home.c1.title">关于我</span>
+            <span class="home-card-desc" data-text="home.c1.desc">张一铭 · 电气工程及其自动化在读</span>
             <span class="home-card-arrow">看看
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1249,8 +1249,8 @@ button.social{
 
           <a class="home-card home-anim" style="--i:5" href="#/contact">
             <span class="home-card-index">02</span>
-            <span class="home-card-title">联系我</span>
-            <span class="home-card-desc">邮箱、微信、QQ 和各个平台</span>
+            <span class="home-card-title" data-text="home.c2.title">联系我</span>
+            <span class="home-card-desc" data-text="home.c2.desc">邮箱、微信、QQ 和各个平台</span>
             <span class="home-card-arrow">看看
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1261,8 +1261,8 @@ button.social{
 
           <a class="home-card home-anim" style="--i:6" href="#/recent">
             <span class="home-card-index">03</span>
-            <span class="home-card-title">我的最近</span>
-            <span class="home-card-desc">游戏、音乐、图库和小日记</span>
+            <span class="home-card-title" data-text="home.c3.title">我的最近</span>
+            <span class="home-card-desc" data-text="home.c3.desc">游戏、音乐、图库和小日记</span>
             <span class="home-card-arrow">看看
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1273,8 +1273,8 @@ button.social{
 
           <a class="home-card home-anim" style="--i:7" href="#/reviews">
             <span class="home-card-index">04</span>
-            <span class="home-card-title">关于我的评论</span>
-            <span class="home-card-desc">朋友和同学留下的评价</span>
+            <span class="home-card-title" data-text="home.c4.title">关于我的评论</span>
+            <span class="home-card-desc" data-text="home.c4.desc">朋友和同学留下的评价</span>
             <span class="home-card-arrow">看看
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1302,24 +1302,24 @@ button.social{
         <div class="section-head">
           <p class="eyebrow">About</p>
           <h2>关于我</h2>
-          <p class="lead">喜欢把复杂的事做简单，也喜欢把简单的事做长久。</p>
+          <p class="lead" data-text="about.lead">喜欢把复杂的事做简单，也喜欢把简单的事做长久。</p>
         </div>
 
         <div class="about-grid">
 
           <div class="about-text">
-            <p>
+            <p data-text="about.p1">
               你好，我是张一铭，Evan 是我的英文名。我是一名电气工程及其自动化在读学生，平时有一些小爱好。
             </p>
-            <p>
+            <p data-text="about.p2">
               学习之外，我喜欢打游戏、拍照，在网上冲浪。如果你正在做有意思的项目，或者只是想聊聊想法，
               都欢迎随时联系我。
             </p>
 
             <ul class="highlights">
-              <li>电气工程及其自动化 · 在读</li>
-              <li>喜欢游戏、拍照，也喜欢在网上闲逛</li>
-              <li>乐于交流，欢迎随时找我聊</li>
+              <li data-text="about.h1">电气工程及其自动化 · 在读</li>
+              <li data-text="about.h2">喜欢游戏、拍照，也喜欢在网上闲逛</li>
+              <li data-text="about.h3">乐于交流，欢迎随时找我聊</li>
             </ul>
           </div>
 
@@ -1329,13 +1329,13 @@ button.social{
               <div class="figure-media">
                 <img src="bg.jpg" alt="峡湾风景" width="1400" height="875" loading="lazy" decoding="async">
               </div>
-              <figcaption>峡湾 · 喜欢这种开阔的安静</figcaption>
+              <figcaption data-text="about.caption">峡湾 · 喜欢这种开阔的安静</figcaption>
             </figure>
 
             <!-- 详情入口：点进去是同一文件里的「详情」页，不新开窗口 -->
             <a class="link-card entry-card" href="#/detail">
-              <span class="link-card-title">详情</span>
-              <span class="entry-card-text">我的故事/回忆 · 作品集 · 简历下载</span>
+              <span class="link-card-title" data-text="about.detail.title">详情</span>
+              <span class="entry-card-text" data-text="about.detail.text">我的故事/回忆 · 作品集 · 简历下载</span>
               <span class="entry-card-arrow" aria-hidden="true">查看详情
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
@@ -1346,8 +1346,8 @@ button.social{
 
             <!-- 他人评价入口：同样是页面内切换 -->
             <a class="link-card entry-card" href="#/reviews">
-              <span class="link-card-title">他人评价</span>
-              <span class="entry-card-text">朋友、同学和共事过的人怎么说</span>
+              <span class="link-card-title" data-text="about.reviews.title">他人评价</span>
+              <span class="entry-card-text" data-text="about.reviews.text">朋友、同学和共事过的人怎么说</span>
               <span class="entry-card-arrow" aria-hidden="true">去看看
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
@@ -1370,7 +1370,7 @@ button.social{
         <div class="section-head">
           <p class="eyebrow">Contact</p>
           <h2>联系我</h2>
-          <p class="lead">合作、约稿或者只是打个招呼，都可以从这里开始。</p>
+          <p class="lead" data-text="contact.lead">合作、约稿或者只是打个招呼，都可以从这里开始。</p>
         </div>
 
         <div class="contact-card">
@@ -1378,7 +1378,7 @@ button.social{
             <div class="mail-text">
               <p class="eyebrow">Email</p>
               <!-- ⑥ 邮箱：显示文字与 data-copy 要同时改 -->
-              <p class="mail-address" id="mail-address">1521133265@qq.com</p>
+              <p class="mail-address" id="mail-address" data-text="contact.email">1521133265@qq.com</p>
             </div>
             <button class="btn btn-ghost copy-btn" type="button"
                     data-copy="1521133265@qq.com">复制邮箱</button>
@@ -1585,7 +1585,7 @@ button.social{
         <div class="section-head">
           <p class="eyebrow">Testimonials</p>
           <h2>他人评价</h2>
-          <p class="lead">朋友、同学和共事过的人，说几句真实的印象。</p>
+          <p class="lead" data-text="reviews.lead">朋友、同学和共事过的人，说几句真实的印象。</p>
         </div>
 
         <div class="reviews-layout">
@@ -1645,15 +1645,15 @@ button.social{
         <div class="section-head">
           <p class="eyebrow">Recently</p>
           <h2>我的最近</h2>
-          <p class="lead">游戏、音乐、图库和小日记，随手记一点。</p>
+          <p class="lead" data-text="recent.lead">游戏、音乐、图库和小日记，随手记一点。</p>
         </div>
 
         <div class="recent-grid">
 
           <article class="recent-card">
             <p class="recent-kicker">Game</p>
-            <h3 class="recent-title">游戏</h3>
-            <p class="recent-text">
+            <h3 class="recent-title" data-text="recent.game.title">游戏</h3>
+            <p class="recent-text" data-text="recent.game.text">
               最近大部分时间在打 CS2。手感好的时候能上分，手感差的时候就当练枪，
               顺便研究一下别人的道具和站位。
             </p>
@@ -1665,8 +1665,8 @@ button.social{
 
           <article class="recent-card">
             <p class="recent-kicker">Music</p>
-            <h3 class="recent-title">音乐</h3>
-            <p class="recent-text">
+            <h3 class="recent-title" data-text="recent.music.title">音乐</h3>
+            <p class="recent-text" data-text="recent.music.text">
               歌单常年循环，口味从 City Pop 到电影原声都有；写东西的时候更喜欢放没有人声的。
             </p>
             <ul class="recent-list">
@@ -1677,8 +1677,8 @@ button.social{
 
           <article class="recent-card">
             <p class="recent-kicker">Gallery</p>
-            <h3 class="recent-title">图库</h3>
-            <p class="recent-text">
+            <h3 class="recent-title" data-text="recent.gallery.title">图库</h3>
+            <p class="recent-text" data-text="recent.gallery.text">
               随手拍的一些画面，攒够一组再放上来。现在先占个位置。
             </p>
             <div class="photo-grid" id="gallery-grid"></div>
@@ -1687,7 +1687,7 @@ button.social{
 
           <article class="recent-card">
             <p class="recent-kicker">Diary</p>
-            <h3 class="recent-title">小日记</h3>
+            <h3 class="recent-title" data-text="recent.diary.title">小日记</h3>
             <ul class="recent-diary">
               <li>
                 <time datetime="2026-10-30">10 月 30 日</time>
@@ -2218,6 +2218,36 @@ button.social{
 
     window.setTimeout(function () { coverEnter.focus(); }, 80);
   }
+
+  /* ---------------- 文案：读取 content/site.json（后台 /admin.html 可改） ----------------
+     读不到就用 HTML 里的原文，不会出现空白页面 */
+  function applySiteTexts(map) {
+    if (!map) return;
+
+    document.querySelectorAll('[data-text]').forEach(function (el) {
+      var value = map[el.getAttribute('data-text')];
+      if (value != null && String(value).trim() !== '') el.textContent = value;
+    });
+
+    document.querySelectorAll('[data-text-html]').forEach(function (el) {
+      var value = map[el.getAttribute('data-text-html')];
+      if (value != null && String(value).trim() !== '') {
+        el.innerHTML = String(value).replace(/\n/g, '<br>');
+      }
+    });
+
+    // 邮箱：显示文字改了，复制按钮带的 data-copy 也要跟着改
+    var email = map['contact.email'];
+    if (email) {
+      var copyBtn = document.querySelector('.copy-btn');
+      if (copyBtn) copyBtn.setAttribute('data-copy', email);
+    }
+  }
+
+  fetch('content/site.json', { cache: 'no-store' })
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) { applySiteTexts(data); })
+    .catch(function () { /* 网络异常时保持 HTML 原文 */ });
 
   /* ---------------- 图库：读取 Pages CMS 写入的 content/gallery.json ---------------- */
   var galleryTargets = [

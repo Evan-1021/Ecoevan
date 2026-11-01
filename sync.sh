@@ -11,6 +11,10 @@ cd "$REPO"
 
 cp "$SRC" index.html
 cp "$SRC" evan-personal-site.html
+
+# 后台页（改文字用）也一起同步
+ADMIN="$HOME/Documents/deepseek-harness/default-workspace/admin.html"
+[ -f "$ADMIN" ] && cp "$ADMIN" admin.html
 git add -A
 
 if git diff --cached --quiet; then
