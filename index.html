@@ -25,7 +25,8 @@
   ⑥ 他人评价    搜索 id="page-reviews"：标题与说明（评论内容存在 Supabase）
   ⑦ 我的最近    搜索 id="page-recent"：游戏 / 音乐 / 图库 / 小日记
   ⑧ 页脚        搜索 class="footer-inner"：©️2026Evan 与「回到首页」
-  ⑨ 配色风格    搜索 :root：改 --accent 等变量即可整体换色
+  ⑨ 配色风格    搜索 :root / :root[data-theme="dark"]：改 --accent 等变量即可整体换色
+  ⑩ 中英文 / 深色  搜索 class="tools"（封面与顶栏各一处）；英文文案在 content/site.en.json
   ----------------------------------------------------------------
   图片与视频：photos/、videos/ 目录；图库说明在 content/gallery.json，日记在 content/diary.json
   不想碰代码：打开 https://ecoevan.pages.dev/admin ，粘一次 GitHub 令牌即可改上面的文字，
@@ -54,6 +55,7 @@
   --accent:      #3e63dd;
   --accent-ink:  #2f4fb8;
   --accent-soft: rgba(62,99,221,.10);
+  --hover:       rgba(21,26,33,.05);
 
   /* 尺寸与圆角 */
   --max:      1080px;
@@ -69,6 +71,26 @@
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
           "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", Roboto,
           Helvetica, Arial, sans-serif;
+}
+
+/* 深色模式：只换颜色，其它样式全部继承 */
+:root[data-theme="dark"]{
+  --bg:          #0e1116;
+  --bg-tint-1:   #16203a;
+  --bg-tint-2:   #131a26;
+  --surface:     #161b22;
+  --surface-2:   #1c222b;
+  --ink:         #eef1f7;
+  --text:        #c2cad6;
+  --muted:       #8a94a3;
+  --line:        #252d38;
+  --accent:      #8aa2ff;
+  --accent-ink:  #aabaff;
+  --accent-soft: rgba(138,162,255,.16);
+  --hover:       rgba(255,255,255,.06);
+  --shadow-sm:   0 1px 2px rgba(0,0,0,.5), 0 12px 28px -16px rgba(0,0,0,.7);
+  --shadow-md:   0 30px 70px -40px rgba(0,0,0,.85);
+  color-scheme:  dark;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -140,8 +162,8 @@ body.is-covered{ overflow:hidden; }
   display:grid; place-items:center;
   padding:clamp(24px, 6vw, 64px);
   background:
-    radial-gradient(900px 520px at 12% -8%, #e9eefb 0%, transparent 60%),
-    radial-gradient(760px 460px at 88% 0%, #eef1f7 0%, transparent 55%),
+    radial-gradient(900px 520px at 12% -8%, var(--bg-tint-1) 0%, transparent 60%),
+    radial-gradient(760px 460px at 88% 0%, var(--bg-tint-2) 0%, transparent 55%),
     var(--bg);
   transition:opacity .42s ease, visibility .42s ease;
 }
@@ -243,7 +265,7 @@ body.is-covered{ overflow:hidden; }
   font-size:14.5px; color:var(--muted);
   transition:color .18s ease, background-color .18s ease;
 }
-.nav-link:hover{ color:var(--ink); background:rgba(255,255,255,.7); }
+.nav-link:hover{ color:var(--ink); background:var(--hover); }
 .nav-link.is-active{ color:var(--accent-ink); background:var(--accent-soft); }
 
 .nav-toggle{
@@ -1215,6 +1237,88 @@ button.social{
     transition-duration:.001ms !important;
   }
 }
+
+/* ---------------- 语言 / 深色模式 切换按钮 ---------------- */
+.tools{ display:flex; align-items:center; gap:8px; }
+
+.tool-btn{
+  height:38px; min-width:38px; padding:0 12px;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  font:inherit; font-size:12.5px; font-weight:600; letter-spacing:.02em;
+  color:var(--text);
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:999px;
+  cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  transition:color .16s ease, background-color .16s ease, border-color .16s ease, transform .16s ease;
+}
+.tool-btn:hover{ color:var(--ink); border-color:rgba(62,99,221,.38); transform:translateY(-1px); }
+.tool-btn:active{ transform:translateY(0); }
+.tool-btn svg{ width:17px; height:17px; display:block; }
+.tool-btn .icon-sun{ display:none; }
+:root[data-theme="dark"] .tool-btn .icon-sun{ display:block; }
+:root[data-theme="dark"] .tool-btn .icon-moon{ display:none; }
+
+.cover-tools{
+  position:absolute;
+  top:clamp(18px, 3.4vw, 30px);
+  right:clamp(18px, 3.4vw, 30px);
+}
+
+@media (max-width:640px){
+  .tool-btn{ height:36px; min-width:36px; padding:0 10px; font-size:12px; }
+  .tools{ margin-left:auto; }
+}
+
+/* ---------------- 深色模式下几个写死了浅色的地方 ---------------- */
+:root[data-theme="dark"] .site-header{
+  background:rgba(14,17,22,.74);
+  border-bottom-color:rgba(37,45,56,.9);
+}
+:root[data-theme="dark"] .home-panel{
+  background:rgba(18,23,31,.72);
+  border-color:rgba(255,255,255,.08);
+  box-shadow:0 44px 90px -50px rgba(0,0,0,.9);
+}
+:root[data-theme="dark"] .home-bg{ opacity:.5; }
+:root[data-theme="dark"] .home-bg::after{
+  background:linear-gradient(180deg,
+    rgba(8,11,16,.62) 0%,
+    rgba(8,11,16,.42) 40%,
+    rgba(8,11,16,.82) 100%);
+}
+:root[data-theme="dark"] .cover-avatar{
+  background:linear-gradient(145deg, #232c39 0%, #181e27 60%, #12171f 100%);
+  box-shadow:var(--shadow-sm), inset 0 0 0 1px rgba(255,255,255,.06);
+}
+:root[data-theme="dark"] .review-cta{ background:#16203a; border-color:#243252; }
+:root[data-theme="dark"] .review-cta-title{ color:#c3d3f5; }
+:root[data-theme="dark"] .btn-cta{ background:#22314f; border-color:#2f4269; color:#d5e0fb; }
+:root[data-theme="dark"] .btn-cta:hover{ background:#2a3c5e; box-shadow:0 12px 24px -16px rgba(0,0,0,.9); }
+:root[data-theme="dark"] .review-cta-note{ color:#93a8cc; }
+:root[data-theme="dark"] .btn-ghost:hover{ border-color:#3a4453; }
+:root[data-theme="dark"] .detail-tab:hover{ border-color:#3a4453; }
+:root[data-theme="dark"] .qr-close:hover{ border-color:#3a4453; }
+:root[data-theme="dark"] code{ background:rgba(255,255,255,.09); }
+:root[data-theme="dark"] .home-card{
+  background:rgba(22,28,37,.88);
+  border-color:rgba(255,255,255,.08);
+}
+:root[data-theme="dark"] .home-card:hover{
+  background:rgba(29,37,48,.96);
+  border-color:rgba(138,162,255,.45);
+  box-shadow:0 26px 50px -30px rgba(0,0,0,.9);
+}
+:root[data-theme="dark"] .home-id{
+  background:rgba(20,26,34,.82);
+  border-color:rgba(255,255,255,.1);
+  box-shadow:0 18px 40px -28px rgba(0,0,0,.9);
+}
+:root[data-theme="dark"] .cover-enter,
+:root[data-theme="dark"] .btn-primary{ background:#4159c4; color:#fff; }
+:root[data-theme="dark"] .cover-enter:hover,
+:root[data-theme="dark"] .btn-primary:hover{ background:#4c65d6; }
 </style>
 </head>
 
@@ -1223,6 +1327,20 @@ button.social{
 
 <!-- 进入封面：初次打开网站时看到，点「点击进入」后进入正式页面 -->
 <div class="cover" id="cover" role="region" aria-label="欢迎页">
+  <div class="cover-tools tools">
+    <button class="tool-btn js-lang" type="button" aria-label="切换为英文">EN</button>
+      <button class="tool-btn js-theme" type="button" aria-label="切换到深色模式" aria-pressed="false">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.5 14.5A8.6 8.6 0 1 1 9.6 3.6a7 7 0 0 0 10.9 10.9Z"/>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.2 6.2 4.7 4.7M19.3 19.3l-1.5-1.5M17.8 6.2l1.5-1.5M4.7 19.3l1.5-1.5"/>
+        </svg>
+      </button>
+  </div>
   <div class="cover-inner">
     <div class="cover-avatar">
       <img src="avatar.jpg" alt="Evan 的头像" width="480" height="480" decoding="async">
@@ -1243,10 +1361,25 @@ button.social{
     </a>
 
     <nav class="nav" id="site-nav" aria-label="主导航">
-      <a class="nav-link is-active" href="#/home" data-page="home" aria-current="page">首页</a>
-      <a class="nav-link" href="#/about" data-page="about">关于我</a>
-      <a class="nav-link" href="#/contact" data-page="contact">联系我</a>
+      <a class="nav-link is-active" href="#/home" data-page="home" aria-current="page" data-i18n="nav.home">首页</a>
+      <a class="nav-link" href="#/about" data-page="about" data-i18n="nav.about">关于我</a>
+      <a class="nav-link" href="#/contact" data-page="contact" data-i18n="nav.contact">联系我</a>
     </nav>
+
+    <div class="tools">
+      <button class="tool-btn js-lang" type="button" aria-label="切换为英文">EN</button>
+      <button class="tool-btn js-theme" type="button" aria-label="切换到深色模式" aria-pressed="false">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.5 14.5A8.6 8.6 0 1 1 9.6 3.6a7 7 0 0 0 10.9 10.9Z"/>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.2 6.2 4.7 4.7M19.3 19.3l-1.5-1.5M17.8 6.2l1.5-1.5M4.7 19.3l1.5-1.5"/>
+        </svg>
+      </button>
+    </div>
 
     <button class="nav-toggle" id="nav-toggle" type="button"
             aria-expanded="false" aria-controls="site-nav" aria-label="打开菜单">
@@ -1279,7 +1412,7 @@ button.social{
             <span class="home-card-index">01</span>
             <span class="home-card-title" data-text="home.c1.title">关于我</span>
             <span class="home-card-desc" data-text="home.c1.desc">张一铭 · 电气工程及其自动化在读</span>
-            <span class="home-card-arrow">看看
+            <span class="home-card-arrow" data-i18n="cta.look">看看
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M5 12h13M13 6l6 6-6 6"/>
@@ -1291,7 +1424,7 @@ button.social{
             <span class="home-card-index">02</span>
             <span class="home-card-title" data-text="home.c2.title">联系我</span>
             <span class="home-card-desc" data-text="home.c2.desc">邮箱、微信、QQ 和各个平台</span>
-            <span class="home-card-arrow">看看
+            <span class="home-card-arrow" data-i18n="cta.look">看看
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M5 12h13M13 6l6 6-6 6"/>
@@ -1303,7 +1436,7 @@ button.social{
             <span class="home-card-index">03</span>
             <span class="home-card-title" data-text="home.c3.title">我的最近</span>
             <span class="home-card-desc" data-text="home.c3.desc">游戏、音乐、图库和小日记</span>
-            <span class="home-card-arrow">看看
+            <span class="home-card-arrow" data-i18n="cta.look">看看
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M5 12h13M13 6l6 6-6 6"/>
@@ -1315,7 +1448,7 @@ button.social{
             <span class="home-card-index">04</span>
             <span class="home-card-title" data-text="home.c4.title">关于我的评论</span>
             <span class="home-card-desc" data-text="home.c4.desc">朋友和同学留下的评价</span>
-            <span class="home-card-arrow">看看
+            <span class="home-card-arrow" data-i18n="cta.look">看看
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M5 12h13M13 6l6 6-6 6"/>
@@ -1341,7 +1474,7 @@ button.social{
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">About</p>
-          <h2>关于我</h2>
+          <h2 data-i18n="about.title">关于我</h2>
           <p class="lead" data-text="about.lead">喜欢把复杂的事做简单，也喜欢把简单的事做长久。</p>
         </div>
 
@@ -1376,7 +1509,7 @@ button.social{
             <a class="link-card entry-card" href="#/detail">
               <span class="link-card-title" data-text="about.detail.title">详情</span>
               <span class="entry-card-text" data-text="about.detail.text">我的故事/回忆 · 作品集 · 简历下载</span>
-              <span class="entry-card-arrow" aria-hidden="true">查看详情
+              <span class="entry-card-arrow" aria-hidden="true" data-i18n="cta.detail">查看详情
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12h13M13 6l6 6-6 6"/>
@@ -1388,7 +1521,7 @@ button.social{
             <a class="link-card entry-card" href="#/reviews">
               <span class="link-card-title" data-text="about.reviews.title">他人评价</span>
               <span class="entry-card-text" data-text="about.reviews.text">朋友、同学和共事过的人怎么说</span>
-              <span class="entry-card-arrow" aria-hidden="true">去看看
+              <span class="entry-card-arrow" aria-hidden="true" data-i18n="cta.look">去看看
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12h13M13 6l6 6-6 6"/>
@@ -1409,7 +1542,7 @@ button.social{
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Contact</p>
-          <h2>联系我</h2>
+          <h2 data-i18n="contact.title">联系我</h2>
           <p class="lead" data-text="contact.lead">合作、约稿或者只是打个招呼，都可以从这里开始。</p>
         </div>
 
@@ -1421,7 +1554,7 @@ button.social{
               <p class="mail-address" id="mail-address" data-text="contact.email">1521133265@qq.com</p>
             </div>
             <button class="btn btn-ghost copy-btn" type="button"
-                    data-copy="1521133265@qq.com">复制邮箱</button>
+                    data-copy="1521133265@qq.com" data-i18n="contact.copy">复制邮箱</button>
           </div>
 
           <!--
@@ -1444,7 +1577,7 @@ button.social{
                     </svg>
                   </span>
                   <span class="social-text">
-                    <span class="social-name">抖音</span>
+                    <span class="social-name" data-i18n="social.douyin">抖音</span>
                     <span class="social-handle">埃闻CS2<wbr><span class="nowrap">（点击看二维码）</span></span>
                   </span>
                 </button>
@@ -1464,7 +1597,7 @@ button.social{
                   </svg>
                 </span>
                 <span class="social-text">
-                  <span class="social-name">哔哩哔哩</span>
+                  <span class="social-name" data-i18n="social.bilibili">哔哩哔哩</span>
                   <span class="social-handle">亿铭说<wbr><span class="nowrap">（点击访问主页）</span></span>
                 </span>
               </a>
@@ -1480,7 +1613,7 @@ button.social{
                   </svg>
                 </span>
                 <span class="social-text">
-                  <span class="social-name">微信</span>
+                  <span class="social-name" data-i18n="social.wechat">微信</span>
                   <span class="social-handle">1521133265</span>
                 </span>
               </div>
@@ -1513,7 +1646,7 @@ button.social{
                 </span>
                 <span class="social-text">
                   <span class="social-name">X</span>
-                  <span class="social-handle">暂无</span>
+                  <span class="social-handle" data-i18n="social.none">暂无</span>
                 </span>
               </div>
             </li>
@@ -1521,7 +1654,7 @@ button.social{
           </ul>
 
           <!-- 发布前可以删掉这一行提示 -->
-          <p class="hint">抖音点击可看二维码；哔哩哔哩直接跳转主页；微信 / QQ / X 仅作展示。</p>
+          <p class="hint" data-i18n="contact.hint">抖音点击可看二维码；哔哩哔哩直接跳转主页；微信 / QQ / X 仅作展示。</p>
         </div>
       </div>
     </div>
@@ -1532,7 +1665,7 @@ button.social{
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Details</p>
-          <h2>详情</h2>
+          <h2 data-i18n="detail.title">详情</h2>
           <p class="lead">故事、作品集与简历，都集中在这一页；左侧切换即可。</p>
         </div>
 
@@ -1545,8 +1678,8 @@ button.social{
                     data-panel="blog">
               <span class="detail-tab-index" aria-hidden="true">01</span>
               <span class="detail-tab-text">
-                <span class="detail-tab-name">我的故事/回忆</span>
-                <span class="detail-tab-desc">一些真实的故事</span>
+                <span class="detail-tab-name" data-i18n="detail.tab1">我的故事/回忆</span>
+                <span class="detail-tab-desc" data-i18n="detail.tab1.desc">一些真实的故事</span>
               </span>
             </button>
 
@@ -1555,8 +1688,8 @@ button.social{
                     data-panel="works">
               <span class="detail-tab-index" aria-hidden="true">02</span>
               <span class="detail-tab-text">
-                <span class="detail-tab-name">作品集</span>
-                <span class="detail-tab-desc">做过的一些东西</span>
+                <span class="detail-tab-name" data-i18n="detail.tab2">作品集</span>
+                <span class="detail-tab-desc" data-i18n="detail.tab2.desc">做过的一些东西</span>
               </span>
             </button>
 
@@ -1565,8 +1698,8 @@ button.social{
                     data-panel="resume">
               <span class="detail-tab-index" aria-hidden="true">03</span>
               <span class="detail-tab-text">
-                <span class="detail-tab-name">简历下载</span>
-                <span class="detail-tab-desc">一页纸的完整版</span>
+                <span class="detail-tab-name" data-i18n="detail.tab3">简历下载</span>
+                <span class="detail-tab-desc" data-i18n="detail.tab3.desc">一页纸的完整版</span>
               </span>
             </button>
           </aside>
@@ -1625,7 +1758,7 @@ button.social{
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Testimonials</p>
-          <h2>他人评价</h2>
+          <h2 data-i18n="reviews.title">他人评价</h2>
           <p class="lead" data-text="reviews.lead">朋友、同学和共事过的人，说几句真实的印象。</p>
         </div>
 
@@ -1634,43 +1767,46 @@ button.social{
           <div class="reviews-main">
             <p class="reviews-meta"><span id="review-count">共 0 条</span></p>
             <ul class="review-list" id="review-list"></ul>
-            <p class="reviews-empty" id="reviews-empty">还没有评论，右侧点一下，来写第一条吧。</p>
+            <p class="reviews-empty" id="reviews-empty" data-i18n="reviews.empty">还没有评论，右侧点一下，来写第一条吧。</p>
             <p class="reviews-note" id="reviews-note">
-              评论暂时保存在这台设备的浏览器里（localStorage）；接上 Supabase 后会公开显示给所有人。
+              评论保存在云端，填完立刻公开显示给所有人。
             </p>
           </div>
 
           <aside class="reviews-side">
             <div class="review-cta" id="review-cta">
-              <p class="review-cta-title">说说你眼中的我</p>
-              <button class="btn-cta" id="review-open" type="button">点我评论</button>
-              <p class="review-cta-note">不用登录，填完立刻显示</p>
+              <p class="review-cta-title" data-i18n="reviews.cta.title">说说你眼中的我</p>
+              <button class="btn-cta" id="review-open" type="button" data-i18n="reviews.cta.btn">点我评论</button>
+              <p class="review-cta-note" data-i18n="reviews.cta.note">不用登录，填完立刻显示</p>
             </div>
 
             <form class="review-form" id="review-form" hidden>
               <div class="review-field">
-                <label for="review-relation">你与他的关系</label>
+                <label for="review-relation" data-i18n="reviews.form.relation">你与他的关系</label>
                 <input id="review-relation" name="relation" type="text" maxlength="20"
-                       placeholder="同学 / 朋友 / 网友…" autocomplete="off" required>
+                       placeholder="同学 / 朋友 / 网友…" autocomplete="off" required
+                       data-i18n="reviews.form.relation.ph" data-i18n-attr="placeholder">
               </div>
 
               <div class="review-field">
-                <label for="review-nickname">留下你的昵称<span class="review-optional">（选填）</span></label>
+                <label for="review-nickname"><span data-i18n="reviews.form.nickname">留下你的昵称</span><span class="review-optional" data-i18n="reviews.form.optional">（选填）</span></label>
                 <input id="review-nickname" name="nickname" type="text" maxlength="20"
-                       placeholder="不填就只显示「关系」" autocomplete="off">
+                       placeholder="不填就只显示「关系」" autocomplete="off"
+                       data-i18n="reviews.form.nickname.ph" data-i18n-attr="placeholder">
               </div>
 
               <div class="review-field">
-                <label for="review-text">评论</label>
+                <label for="review-text" data-i18n="reviews.form.text">评论</label>
                 <textarea id="review-text" name="text" maxlength="500"
-                          placeholder="写点真实的印象，比如一起做过什么、印象最深的一件事…" required></textarea>
+                          placeholder="写点真实的印象，比如一起做过什么、印象最深的一件事…" required
+                          data-i18n="reviews.form.text.ph" data-i18n-attr="placeholder"></textarea>
               </div>
 
               <p class="review-error" id="review-error" role="alert"></p>
 
               <div class="review-form-actions">
-                <button class="btn btn-primary" type="submit">发布</button>
-                <button class="btn btn-ghost" type="button" id="review-cancel">取消</button>
+                <button class="btn btn-primary" type="submit" data-i18n="reviews.form.submit">发布</button>
+                <button class="btn btn-ghost" type="button" id="review-cancel" data-i18n="reviews.form.cancel">取消</button>
               </div>
             </form>
           </aside>
@@ -1753,7 +1889,7 @@ button.social{
   <div class="container footer-inner">
     <!-- ⑦ 版权：年份由脚本写入，改 JS 里的 COPYRIGHT_YEAR 即可 -->
     <p>©️<span id="copyright-year">2026</span>Evan</p>
-    <p><a href="#/home">回到首页 ↑</a></p>
+    <p><a href="#/home" data-i18n="footer.back">回到首页 ↑</a></p>
   </div>
 </footer>
 
@@ -1764,7 +1900,7 @@ button.social{
     <button class="qr-close" type="button" data-qr-close aria-label="关闭二维码">×</button>
     <p class="qr-title" id="qr-title">抖音 · 埃闻 CS2</p>
     <img class="qr-img" src="douyin-qr.jpg" alt="抖音二维码：@埃闻CS2，抖音号 60367839020" loading="lazy" decoding="async">
-    <p class="qr-note">保存图片到相册，打开抖音「扫一扫」；<br>也可以直接搜抖音号 60367839020</p>
+    <p class="qr-note" data-i18n="douyin.note">保存图片到相册，打开抖音「扫一扫」；<br>也可以直接搜抖音号 60367839020</p>
   </div>
 </div>
 
@@ -1876,7 +2012,7 @@ button.social{
     });
 
     var title = activePage ? activePage.getAttribute('data-title') : '';
-    document.title = 'Evan · ' + (title || '个人名片');
+    document.title = 'Evan · ' + pageTitleFor(title || '个人名片');
     current = name;
 
     if (name === 'home' && !isCoverPending() && typeof playHomeIntro === 'function') playHomeIntro();
@@ -2099,7 +2235,7 @@ button.social{
     });
 
     if (reviewEmpty) reviewEmpty.hidden = reviewsCache.length > 0;
-    if (reviewCount) reviewCount.textContent = '共 ' + reviewsCache.length + ' 条';
+    if (reviewCount) reviewCount.textContent = reviewCountText(reviewsCache.length);
   }
 
   function setReviewNote(text) {
@@ -2261,6 +2397,167 @@ button.social{
     window.setTimeout(function () { coverEnter.focus(); }, 80);
   }
 
+  /* ---------------- 语言（中文 / English）与深色模式 ----------------
+     两个开关的状态都记在浏览器里：关掉页面再来还是上次的选择 */
+  var LANG_KEY = 'evan_lang';
+  var THEME_KEY = 'evan_theme';
+  var currentLang = 'zh';
+  var currentTheme = 'light';
+
+  // 页面上「写死的」小字：标题、按钮、导航、表单标签
+  var I18N = {
+    'nav.home':            { zh: '首页', en: 'Home' },
+    'nav.about':           { zh: '关于我', en: 'About' },
+    'nav.contact':         { zh: '联系我', en: 'Contact' },
+    'footer.back':         { zh: '回到首页 ↑', en: 'Back to home ↑' },
+    'cta.look':            { zh: '看看', en: 'View' },
+    'cta.detail':          { zh: '查看详情', en: 'Details' },
+    'about.title':         { zh: '关于我', en: 'About me' },
+    'contact.title':       { zh: '联系我', en: 'Contact' },
+    'detail.title':        { zh: '详情', en: 'Details' },
+    'reviews.title':       { zh: '他人评价', en: 'Reviews' },
+    'contact.copy':        { zh: '复制邮箱', en: 'Copy email' },
+    'contact.hint':        { zh: '抖音点击可看二维码；哔哩哔哩直接跳转主页；微信 / QQ / X 仅作展示。',
+                             en: 'Tap Douyin for the QR code; Bilibili opens my channel; WeChat / QQ / X are display only.' },
+    'social.douyin':       { zh: '抖音', en: 'Douyin' },
+    'social.bilibili':     { zh: '哔哩哔哩', en: 'Bilibili' },
+    'social.wechat':       { zh: '微信', en: 'WeChat' },
+    'social.none':         { zh: '暂无', en: 'N/A' },
+    'douyin.note':         { zh: '保存图片到相册，打开抖音「扫一扫」；也可以直接搜抖音号 60367839020',
+                             en: 'Save the image and scan it in Douyin, or search the ID 60367839020' },
+    'detail.tab1':         { zh: '我的故事/回忆', en: 'Stories' },
+    'detail.tab1.desc':    { zh: '一些真实的故事', en: 'A few true stories' },
+    'detail.tab2':         { zh: '作品集', en: 'Works' },
+    'detail.tab2.desc':    { zh: '做过的一些东西', en: 'Things I made' },
+    'detail.tab3':         { zh: '简历下载', en: 'Résumé' },
+    'detail.tab3.desc':    { zh: '一页纸的完整版', en: 'One-page version' },
+    'reviews.empty':       { zh: '还没有评论，右侧点一下，来写第一条吧。', en: 'No comments yet — write the first one on the right.' },
+    'reviews.cta.title':   { zh: '说说你眼中的我', en: 'How do you see me?' },
+    'reviews.cta.btn':     { zh: '点我评论', en: 'Leave a comment' },
+    'reviews.cta.note':    { zh: '不用登录，填完立刻显示', en: 'No sign-in needed' },
+    'reviews.form.relation':      { zh: '你与他的关系', en: 'How you know me' },
+    'reviews.form.nickname':      { zh: '留下你的昵称', en: 'Your nickname' },
+    'reviews.form.optional':      { zh: '（选填）', en: ' (optional)' },
+    'reviews.form.text':          { zh: '评论', en: 'Comment' },
+    'reviews.form.submit':        { zh: '发布', en: 'Post' },
+    'reviews.form.cancel':        { zh: '取消', en: 'Cancel' },
+    'reviews.form.relation.ph':   { zh: '同学 / 朋友 / 网友…', en: 'Classmate / friend / online…' },
+    'reviews.form.nickname.ph':   { zh: '不填就只显示「关系」', en: 'Leave blank to show only the relation' },
+    'reviews.form.text.ph':       { zh: '写点真实的印象，比如一起做过什么、印象最深的一件事…',
+                                    en: 'Something real — what we did together, one thing you remember…' }
+  };
+
+  // 浏览器标签页标题
+  var PAGE_TITLES = {
+    '首页': 'Home', '关于我': 'About', '联系我': 'Contact', '详情': 'Details',
+    '他人评价': 'Reviews', '我的最近': 'Recently', '个人名片': 'Personal site'
+  };
+
+  function t(key) {
+    var entry = I18N[key];
+    if (!entry) return '';
+    return entry[currentLang] || entry.zh;
+  }
+
+  function pageTitleFor(zhTitle) {
+    return currentLang === 'en' ? (PAGE_TITLES[zhTitle] || zhTitle) : zhTitle;
+  }
+
+  function reviewCountText(count) {
+    if (currentLang === 'en') return count === 1 ? '1 comment' : count + ' comments';
+    return '共 ' + count + ' 条';
+  }
+
+  function readStore(key) {
+    try { return window.localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function writeStore(key, value) {
+    try { window.localStorage.setItem(key, value); } catch (e) {}
+  }
+
+  function applyChrome() {
+    document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh-CN';
+
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var value = t(el.getAttribute('data-i18n'));
+      if (!value) return;
+      var attr = el.getAttribute('data-i18n-attr');
+      if (attr) el.setAttribute(attr, value);
+      else el.textContent = value;
+    });
+
+    document.querySelectorAll('.js-lang').forEach(function (btn) {
+      btn.textContent = currentLang === 'en' ? '中文' : 'EN';
+      btn.setAttribute('aria-label', currentLang === 'en' ? '切换为中文' : '切换为英文');
+      btn.setAttribute('title', currentLang === 'en' ? 'Switch to Chinese' : 'Switch to English');
+    });
+  }
+
+  function applyTheme(theme) {
+    currentTheme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', currentTheme === 'dark' ? '#0e1116' : '#f5f6f8');
+
+    document.querySelectorAll('.js-theme').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', currentTheme === 'dark' ? 'true' : 'false');
+      btn.setAttribute('aria-label', currentTheme === 'dark' ? '切换到浅色模式' : '切换到深色模式');
+      btn.setAttribute('title', currentTheme === 'dark' ? '切换到浅色模式' : '切换到深色模式');
+    });
+  }
+
+  function setLang(lang) {
+    currentLang = lang === 'en' ? 'en' : 'zh';
+    writeStore(LANG_KEY, currentLang);
+    applyChrome();
+    loadSiteTexts();
+
+    var activePage = document.querySelector('.page.is-active');
+    var zhTitle = activePage ? (activePage.getAttribute('data-title') || '个人名片') : '个人名片';
+    document.title = 'Evan · ' + pageTitleFor(zhTitle);
+
+    if (typeof reviewsCache !== 'undefined' && reviewCount) {
+      reviewCount.textContent = reviewCountText(reviewsCache.length);
+    }
+  }
+
+  function loadSiteTexts() {
+    var url = currentLang === 'en' ? 'content/site.en.json' : 'content/site.json';
+    fetch(url, { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (data) return applySiteTexts(data);
+        if (currentLang === 'en') {
+          // 英文文案还没准备好时，退回中文，页面不会变成空的
+          return fetch('content/site.json', { cache: 'no-store' })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (zhData) { if (zhData) applySiteTexts(zhData); });
+        }
+        return null;
+      })
+      .catch(function () { /* 网络异常时保持 HTML 原文 */ });
+  }
+
+  applyTheme(readStore(THEME_KEY) ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  applyChrome();
+
+  document.querySelectorAll('.js-theme').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+      writeStore(THEME_KEY, currentTheme);
+    });
+  });
+
+  document.querySelectorAll('.js-lang').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setLang(currentLang === 'en' ? 'zh' : 'en');
+    });
+  });
+
+  setLang(readStore(LANG_KEY) || 'zh');
+
   /* ---------------- 文案：读取 content/site.json（后台 /admin.html 可改） ----------------
      读不到就用 HTML 里的原文，不会出现空白页面 */
   function applySiteTexts(map) {
@@ -2310,10 +2607,6 @@ button.social{
     }
   }
 
-  fetch('content/site.json', { cache: 'no-store' })
-    .then(function (res) { return res.ok ? res.json() : null; })
-    .then(function (data) { applySiteTexts(data); })
-    .catch(function () { /* 网络异常时保持 HTML 原文 */ });
 
   /* ---------------- 小日记：读取 content/diary.json（后台可增删改） ---------------- */
   var diaryList = document.getElementById('diary-list');

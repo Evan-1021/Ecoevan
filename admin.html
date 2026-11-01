@@ -179,6 +179,25 @@
     .photo-row img{ width:72px; height:56px; }
     .photo-row .actions{ grid-column:1 / -1; }
   }
+
+.langbar{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  margin:0 0 18px;
+  padding:10px 14px;
+  background:#fff;
+  border:1px solid #e6e9ef;
+  border-radius:14px;
+}
+.langbar[hidden]{ display:none; }
+.langbar-label{ font-size:12.5px; font-weight:650; color:#3d4653; margin-right:2px; }
+.seg{
+  font:inherit; font-size:12.5px; font-weight:600;
+  padding:6px 14px; border-radius:999px; cursor:pointer;
+  background:#f2f4f8; border:1px solid #e6e9ef; color:#3d4653;
+  transition:background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+.seg:hover{ border-color:#c9d0db; }
+.seg.is-active{ background:#3e63dd; border-color:#3e63dd; color:#fff; }
 </style>
 </head>
 <body>
@@ -214,6 +233,13 @@
       </ol>
     </details>
   </section>
+
+  <div class="langbar" id="langbar" hidden>
+    <span class="langbar-label">编辑语言</span>
+    <button type="button" class="seg is-active" id="lang-zh">中文</button>
+    <button type="button" class="seg" id="lang-en">English</button>
+    <span class="hint">两种语言各存一个文件，改完分别保存</span>
+  </div>
 
   <form id="form" hidden>
 
@@ -537,6 +563,8 @@
   var BASE = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/';
   var RAW = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/';
   var SITE_PATH = 'content/site.json';
+  var SITE_EN_PATH = 'content/site.en.json';
+  var LANG_KEY = 'evan_admin_lang';
   var DIARY_PATH = 'content/diary.json';
   var GALLERY_PATH = 'content/gallery.json';
   var TOKEN_KEY = 'evan_site_admin_token';
@@ -552,6 +580,9 @@
   var saveBtn = document.getElementById('save');
   var reloadBtn = document.getElementById('reload');
   var statusEl = document.getElementById('status');
+  var langbar = document.getElementById('langbar');
+  var langZhBtn = document.getElementById('lang-zh');
+  var langEnBtn = document.getElementById('lang-en');
   var saveStatus = document.getElementById('save-status');
 
   var diaryRows = document.getElementById('diary-rows');
@@ -565,7 +596,11 @@
   var resumeName = document.getElementById('resume-name');
 
   var state = {
-    site: { sha: null, data: {} },
+    site: {
+      zh: { sha: null, saved: {}, data: {} },
+      en: { sha: null, saved: {}, data: {} }
+    },
+    lang: 'zh',
     diary: { sha: null, data: [] },
     gallery: { sha: null, saved: [], photos: [] }
   };
@@ -651,6 +686,25 @@
       if (!res.ok) throw new Error(String(res.status));
       return res.json();
     });
+  }
+
+  /* ---------------- 语种切换 ---------------- */
+  function paintLangBar() {
+    langZhBtn.classList.toggle('is-active', state.lang === 'zh');
+    langEnBtn.classList.toggle('is-active', state.lang === 'en');
+    langZhBtn.setAttribute('aria-pressed', state.lang === 'zh' ? 'true' : 'false');
+    langEnBtn.setAttribute('aria-pressed', state.lang === 'en' ? 'true' : 'false');
+  }
+  function commitForm() {
+    state.site[state.lang].data = readForm();
+  }
+  function switchLang(lang) {
+    commitForm();
+    state.lang = lang === 'en' ? 'en' : 'zh';
+    try { localStorage.setItem(LANG_KEY, state.lang); } catch (e) {}
+    paintLangBar();
+    fillForm(state.site[state.lang].data);
+    setStatus(saveStatus, state.lang === 'en' ? '正在编辑英文版' : '正在编辑中文版');
   }
 
   /* ---------------- 表单填充 ---------------- */
@@ -961,14 +1015,21 @@
     Promise.all([
       ghGet(SITE_PATH),
       ghGet(DIARY_PATH).catch(function () { return null; }),
-      ghGet(GALLERY_PATH).catch(function () { return null; })
+      ghGet(GALLERY_PATH).catch(function () { return null; }),
+      ghGet(SITE_EN_PATH).catch(function () { return null; })
     ]).then(function (results) {
       var siteFile = results[0];
       var diaryFile = results[1];
       var galleryFile = results[2];
+      var siteEnFile = results[3];
 
-      state.site.sha = siteFile.sha;
-      state.site.data = JSON.parse(decodeB64(siteFile.content));
+      state.site.zh.sha = siteFile.sha;
+      state.site.zh.data = JSON.parse(decodeB64(siteFile.content));
+      state.site.zh.saved = JSON.parse(JSON.stringify(state.site.zh.data));
+
+      state.site.en.sha = siteEnFile ? siteEnFile.sha : null;
+      state.site.en.data = siteEnFile ? JSON.parse(decodeB64(siteEnFile.content)) : {};
+      state.site.en.saved = JSON.parse(JSON.stringify(state.site.en.data));
 
       state.diary.sha = diaryFile ? diaryFile.sha : null;
       state.diary.data = diaryFile ? JSON.parse(decodeB64(diaryFile.content)) : [];
@@ -980,15 +1041,19 @@
       state.gallery.saved = JSON.parse(JSON.stringify(galleryData.photos));
       state.gallery.photos = JSON.parse(JSON.stringify(galleryData.photos));
 
-      fillForm(state.site.data);
+      state.lang = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh';
+      paintLangBar();
+      fillForm(state.site[state.lang].data);
       renderDiary(state.diary.data);
       renderPhotos(state.gallery.photos);
 
       form.hidden = false;
       savebar.hidden = false;
+      langbar.hidden = false;
       localStorage.setItem(TOKEN_KEY, token);
-      setStatus(statusEl, '已载入：文案 ' + Object.keys(state.site.data).length +
-        ' 条 · 日记 ' + state.diary.data.length + ' 条 · 照片 ' + state.gallery.photos.length + ' 张', 'ok');
+      setStatus(statusEl, '已载入：文案 ' + Object.keys(state.site.zh.data).length +
+        ' 条（中文）/ ' + Object.keys(state.site.en.data).length + ' 条（英文） · 日记 ' +
+        state.diary.data.length + ' 条 · 照片 ' + state.gallery.photos.length + ' 个', 'ok');
       setStatus(saveStatus, '改完点右边「保存并发布」');
     }).catch(function (err) {
       setStatus(statusEl, explain(parseInt(String(err.message), 10)), 'err');
@@ -1001,15 +1066,16 @@
     if (form.hidden) return;
     if (!getToken()) { setStatus(saveStatus, '令牌丢了，请重新填', 'err'); return; }
 
-    var site = readForm();
+    commitForm();
     var diary = readDiary();
     var photos = state.gallery.photos.filter(function (p) { return p && (p.src || p.image); });
 
-    var siteChanged = JSON.stringify(site) !== JSON.stringify(state.site.data);
+    var siteZhChanged = JSON.stringify(state.site.zh.data) !== JSON.stringify(state.site.zh.saved);
+    var siteEnChanged = JSON.stringify(state.site.en.data) !== JSON.stringify(state.site.en.saved);
     var diaryChanged = JSON.stringify(diary) !== JSON.stringify(state.diary.data);
     var galleryChanged = JSON.stringify(photos) !== JSON.stringify(state.gallery.saved);
 
-    if (!siteChanged && !diaryChanged && !galleryChanged) {
+    if (!siteZhChanged && !siteEnChanged && !diaryChanged && !galleryChanged) {
       setStatus(saveStatus, '没有改动');
       return;
     }
@@ -1019,12 +1085,24 @@
 
     var chain = Promise.resolve();
 
-    if (siteChanged) {
+    if (siteZhChanged) {
       chain = chain.then(function () {
-        return ghPutText(SITE_PATH, JSON.stringify(site, null, 2) + '\n', 'update site texts', state.site.sha)
+        return ghPutText(SITE_PATH, JSON.stringify(state.site.zh.data, null, 2) + '\n',
+                         'update site texts', state.site.zh.sha)
           .then(function (json) {
-            state.site.sha = json.content.sha;
-            state.site.data = site;
+            state.site.zh.sha = json.content.sha;
+            state.site.zh.saved = JSON.parse(JSON.stringify(state.site.zh.data));
+          });
+      });
+    }
+
+    if (siteEnChanged) {
+      chain = chain.then(function () {
+        return ghPutText(SITE_EN_PATH, JSON.stringify(state.site.en.data, null, 2) + '\n',
+                         'update site texts (en)', state.site.en.sha)
+          .then(function (json) {
+            state.site.en.sha = json.content.sha;
+            state.site.en.saved = JSON.parse(JSON.stringify(state.site.en.data));
           });
       });
     }
@@ -1052,7 +1130,8 @@
 
     chain.then(function () {
       var parts = [];
-      if (siteChanged) parts.push('文案');
+      if (siteZhChanged) parts.push('中文文案');
+      if (siteEnChanged) parts.push('英文文案');
       if (diaryChanged) parts.push('日记');
       if (galleryChanged) parts.push('照片说明');
       setStatus(saveStatus, '已保存（' + parts.join('、') + '），约 1 分钟后线上生效', 'ok');
@@ -1066,9 +1145,13 @@
   /* ---------------- 事件 ---------------- */
   loadBtn.addEventListener('click', load);
   saveBtn.addEventListener('click', save);
+  langZhBtn.addEventListener('click', function () { switchLang('zh'); });
+  langEnBtn.addEventListener('click', function () { switchLang('en'); });
 
   reloadBtn.addEventListener('click', function () {
-    fillForm(state.site.data);
+    state.site.zh.data = JSON.parse(JSON.stringify(state.site.zh.saved));
+    state.site.en.data = JSON.parse(JSON.stringify(state.site.en.saved));
+    fillForm(state.site[state.lang].data);
     renderDiary(state.diary.data);
     state.gallery.photos = JSON.parse(JSON.stringify(state.gallery.saved));
     renderPhotos(state.gallery.photos);
