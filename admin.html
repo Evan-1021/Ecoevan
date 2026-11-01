@@ -111,6 +111,15 @@
   }
 
   /* 小日记行 */
+  .diary-main{ display:grid; gap:8px; min-width:0; }
+  .diary-media{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .diary-media-preview img,
+  .diary-media-preview video{
+    max-width:220px; max-height:140px;
+    display:block; border-radius:8px;
+    border:1px solid var(--line); background:#000;
+  }
+
   .diary-row{
     display:grid;
     grid-template-columns:150px 1fr auto;
@@ -130,7 +139,8 @@
     border-top:1px solid var(--line);
   }
   .photo-row:first-child{ border-top:0; }
-  .photo-row img{
+  .photo-row img,
+  .photo-row video{
     width:96px; height:72px; object-fit:cover;
     border-radius:8px; border:1px solid var(--line); background:var(--surface-2);
   }
@@ -411,6 +421,14 @@
       </div>
       <div class="subhead">卡片四 · 小日记</div>
       <div class="field">
+        <label for="f-recent.diary.more">「显示更多」按钮的字</label>
+        <input type="text" id="f-recent.diary.more" data-key="recent.diary.more">
+      </div>
+      <div class="field">
+        <label for="f-recent.diary.less">展开后「收起」的字</label>
+        <input type="text" id="f-recent.diary.less" data-key="recent.diary.less">
+      </div>
+      <div class="field">
         <label for="f-recent.diary.kicker">小标签</label>
         <input type="text" id="f-recent.diary.kicker" data-key="recent.diary.kicker">
       </div>
@@ -482,18 +500,20 @@
       </div>
     </section>
 
-    <h2 class="group">照片（图库 / 作品集） <small>两处共用同一组照片</small></h2>
+    <h2 class="group">照片 / 视频（图库 · 作品集） <small>两处共用同一组内容，图片和视频都行</small></h2>
     <section class="panel">
       <div class="row" style="margin-bottom:14px">
-        <button type="button" class="ghost small" id="photo-pick">上传照片</button>
-        <input type="file" id="photo-file" accept="image/*" multiple>
+        <button type="button" class="ghost small" id="photo-pick">上传照片 / 视频</button>
+        <input type="file" id="photo-file" accept="image/*,video/*" multiple>
         <span class="status" id="photo-status"></span>
       </div>
       <div id="photo-rows"></div>
-      <p class="empty-note" id="photo-empty">还没有照片。</p>
+      <p class="empty-note" id="photo-empty">还没有照片或视频。</p>
     </section>
 
   </form>
+
+  <input type="file" id="diary-media-file" accept="image/*,video/*" style="display:none">
 
   <div class="savebar" id="savebar" hidden>
     <div class="inner">
@@ -520,7 +540,9 @@
   var DIARY_PATH = 'content/diary.json';
   var GALLERY_PATH = 'content/gallery.json';
   var TOKEN_KEY = 'evan_site_admin_token';
-  var MAX_UPLOAD = 8 * 1024 * 1024;
+  var MAX_UPLOAD = 8 * 1024 * 1024;        // 图片上限
+  var MAX_VIDEO = 20 * 1024 * 1024;        // 视频上限
+  var pendingMediaRow = null;
 
   var tokenInput = document.getElementById('token');
   var loadBtn = document.getElementById('load');
@@ -652,16 +674,87 @@
 
     var row = document.createElement('div');
     row.className = 'diary-row';
+    row._media = item.media && item.media.src ? item.media : null;
 
     var date = document.createElement('input');
     date.type = 'date';
     date.className = 'diary-date';
     date.value = item.date || '';
 
+    var main = document.createElement('div');
+    main.className = 'diary-main';
+
     var text = document.createElement('textarea');
     text.className = 'diary-text';
     text.placeholder = '今天发生了点什么…';
     text.value = item.text || '';
+
+    var mediaLine = document.createElement('div');
+    mediaLine.className = 'diary-media';
+
+    var pick = document.createElement('button');
+    pick.type = 'button';
+    pick.className = 'ghost small';
+    pick.textContent = '加图片 / 视频';
+
+    var name = document.createElement('span');
+    name.className = 'filename diary-media-name';
+
+    var clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'danger small';
+    clear.textContent = '移除';
+    clear.hidden = true;
+
+    var preview = document.createElement('div');
+    preview.className = 'diary-media-preview';
+
+    function paintMedia() {
+      preview.textContent = '';
+      if (row._media && row._media.src) {
+        name.textContent = row._media.type === 'video' ? '已加视频' : '已加图片';
+        clear.hidden = false;
+
+        if (row._media.type === 'video') {
+          var v = document.createElement('video');
+          v.src = row._media.src;
+          v.controls = true;
+          v.preload = 'metadata';
+          v.playsInline = true;
+          preview.appendChild(v);
+        } else {
+          var im = document.createElement('img');
+          im.src = row._media.src;
+          im.alt = '';
+          preview.appendChild(im);
+        }
+      } else {
+        name.textContent = '没有附件';
+        clear.hidden = true;
+      }
+    }
+
+    row._paintMedia = paintMedia;
+
+    pick.addEventListener('click', function () {
+      var input = document.getElementById('diary-media-file');
+      pendingMediaRow = row;
+      input.value = '';
+      input.click();
+    });
+
+    clear.addEventListener('click', function () {
+      row._media = null;
+      paintMedia();
+    });
+
+    mediaLine.appendChild(pick);
+    mediaLine.appendChild(name);
+    mediaLine.appendChild(clear);
+
+    main.appendChild(text);
+    main.appendChild(mediaLine);
+    main.appendChild(preview);
 
     var actions = document.createElement('div');
     var del = document.createElement('button');
@@ -675,9 +768,11 @@
     actions.appendChild(del);
 
     row.appendChild(date);
-    row.appendChild(text);
+    row.appendChild(main);
     row.appendChild(actions);
     diaryRows.appendChild(row);
+
+    paintMedia();
     syncDiaryEmpty();
   }
 
@@ -697,7 +792,10 @@
     diaryRows.querySelectorAll('.diary-row').forEach(function (row) {
       var date = row.querySelector('.diary-date').value;
       var text = row.querySelector('.diary-text').value.replace(/\r\n/g, '\n').trim();
-      if (text) out.push({ date: date, text: text });
+      if (!text) return;
+      var entry = { date: date, text: text };
+      if (row._media && row._media.src) entry.media = row._media;
+      out.push(entry);
     });
     return out;
   }
@@ -709,10 +807,21 @@
       var row = document.createElement('div');
       row.className = 'photo-row';
 
-      var img = document.createElement('img');
-      img.src = RAW + String(photo.image || '').replace(/^\//, '');
-      img.alt = '';
-      img.loading = 'lazy';
+      var media = null;
+      var srcPath = String(photo.src || photo.image || '').replace(/^\//, '');
+
+      if (photo.type === 'video') {
+        media = document.createElement('video');
+        media.src = RAW + srcPath;
+        media.muted = true;
+        media.playsInline = true;
+        media.preload = 'metadata';
+      } else {
+        media = document.createElement('img');
+        media.src = RAW + srcPath;
+        media.alt = '';
+        media.loading = 'lazy';
+      }
 
       var input = document.createElement('input');
       input.type = 'text';
@@ -735,7 +844,7 @@
       });
       actions.appendChild(del);
 
-      row.appendChild(img);
+      row.appendChild(media);
       row.appendChild(input);
       row.appendChild(actions);
       photoRows.appendChild(row);
@@ -751,26 +860,44 @@
   }
 
   /* ---------------- 上传 ---------------- */
+  function isVideoFile(file) {
+    return /^video\//.test(file.type || '') || /\.(mp4|mov|webm|m4v|avi)$/i.test(file.name || '');
+  }
+
+  function uploadMediaFile(file) {
+    var video = isVideoFile(file);
+    var cap = video ? MAX_VIDEO : MAX_UPLOAD;
+
+    if (file.size > cap) {
+      return Promise.reject(new Error('too-big:' + Math.round(cap / 1048576)));
+    }
+
+    return fileToB64(file).then(function (b64) {
+      var dir = video ? 'videos/' : 'photos/';
+      var path = dir + Date.now() + '-' + safeName(file.name);
+      return ghPutBinary(path, b64, 'upload ' + (video ? 'video' : 'image') + ': ' + file.name)
+        .then(function () {
+          return { src: '/' + path, type: video ? 'video' : 'image' };
+        });
+    });
+  }
+
   function uploadPhoto(files) {
     var list = Array.prototype.slice.call(files || []);
     if (!list.length) return;
 
     var done = 0;
+    var added = [];
     setStatus(photoStatus, '正在上传 0/' + list.length + '…');
 
     var chain = Promise.resolve();
     list.forEach(function (file) {
       chain = chain.then(function () {
-        if (file.size > MAX_UPLOAD) {
-          throw new Error('too-big:' + file.name);
-        }
-        return fileToB64(file).then(function (b64) {
-          var path = 'photos/' + Date.now() + '-' + safeName(file.name);
-          return ghPutBinary(path, b64, 'upload photo: ' + file.name).then(function () {
-            state.gallery.photos.push({ image: '/' + path, caption: '' });
-            done++;
-            setStatus(photoStatus, '正在上传 ' + done + '/' + list.length + '…');
-          });
+        return uploadMediaFile(file).then(function (media) {
+          added.push(media);
+          state.gallery.photos.push({ src: media.src, type: media.type, caption: '' });
+          done++;
+          setStatus(photoStatus, '正在上传 ' + done + '/' + list.length + '…');
         });
       });
     });
@@ -785,11 +912,11 @@
       state.gallery.sha = json.content.sha;
       state.gallery.saved = JSON.parse(JSON.stringify(state.gallery.photos));
       renderPhotos(state.gallery.photos);
-      setStatus(photoStatus, '已上传 ' + list.length + ' 张，约 1 分钟后出现在网站上', 'ok');
+      setStatus(photoStatus, '已上传 ' + list.length + ' 个，约 1 分钟后出现在网站上', 'ok');
     }).catch(function (err) {
       var msg = String(err.message || err);
       if (msg.indexOf('too-big:') === 0) {
-        setStatus(photoStatus, msg.split(':')[1] + ' 超过 8 MB，先压缩一下', 'err');
+        setStatus(photoStatus, '单个文件上限 ' + msg.split(':')[1] + ' MB，先压缩一下', 'err');
       } else {
         setStatus(photoStatus, explain(parseInt(msg, 10)), 'err');
       }
@@ -876,7 +1003,7 @@
 
     var site = readForm();
     var diary = readDiary();
-    var photos = state.gallery.photos.filter(function (p) { return p && p.image; });
+    var photos = state.gallery.photos.filter(function (p) { return p && (p.src || p.image); });
 
     var siteChanged = JSON.stringify(site) !== JSON.stringify(state.site.data);
     var diaryChanged = JSON.stringify(diary) !== JSON.stringify(state.diary.data);
@@ -975,6 +1102,28 @@
   document.getElementById('photo-file').addEventListener('change', function (event) {
     uploadPhoto(event.target.files);
     event.target.value = '';
+  });
+
+  document.getElementById('diary-media-file').addEventListener('change', function (event) {
+    var file = event.target.files && event.target.files[0];
+    var row = pendingMediaRow;
+    pendingMediaRow = null;
+    event.target.value = '';
+    if (!file || !row) return;
+
+    setStatus(saveStatus, '正在上传附件…');
+    uploadMediaFile(file).then(function (media) {
+      row._media = media;
+      if (typeof row._paintMedia === 'function') row._paintMedia();
+      setStatus(saveStatus, '附件已上传，点「保存并发布」写进日记', 'ok');
+    }).catch(function (err) {
+      var msg = String(err.message || err);
+      if (msg.indexOf('too-big:') === 0) {
+        setStatus(saveStatus, '附件太大（上限 ' + msg.split(':')[1] + ' MB），先压缩一下', 'err');
+      } else {
+        setStatus(saveStatus, explain(parseInt(msg, 10)), 'err');
+      }
+    });
   });
 
   resumePick.addEventListener('click', function () { resumeFile.click(); });

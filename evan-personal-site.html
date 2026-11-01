@@ -27,7 +27,7 @@
   ⑧ 页脚        搜索 class="footer-inner"：©️2026Evan 与「回到首页」
   ⑨ 配色风格    搜索 :root：改 --accent 等变量即可整体换色
   ----------------------------------------------------------------
-  图片：photos/ 目录；图库照片的说明在 content/gallery.json（可用 Pages CMS 后台改）
+  图片与视频：photos/、videos/ 目录；图库说明在 content/gallery.json，日记在 content/diary.json
   不想碰代码：打开 https://ecoevan.pages.dev/admin ，粘一次 GitHub 令牌即可改上面的文字，
   文字存在 content/site.json（data-text="键名" 就是它对应的位置）
   注意：本文件由 default-workspace 复制到 evan-site 仓库，改完跑 evan-site/sync.sh
@@ -1000,6 +1000,38 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   font-size:11.5px; color:var(--muted); letter-spacing:.03em;
 }
 .recent-diary p{ margin-top:4px; font-size:13.5px; line-height:1.7; color:var(--text); }
+.recent-diary li.is-extra{ display:none; }
+.recent-diary.is-expanded li.is-extra{ display:block; }
+.recent-diary-media{
+  margin:8px 0 0;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--surface-2);
+}
+.recent-diary-media img,
+.recent-diary-media video{
+  width:100%;
+  max-height:200px;
+  display:block;
+  object-fit:cover;
+  background:#000;
+  border-radius:9px;
+}
+.diary-more{
+  margin-top:12px;
+  padding:0;
+  border:0;
+  background:none;
+  font:inherit;
+  font-size:12.5px;
+  color:var(--accent-ink);
+  cursor:pointer;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.diary-more:hover{ color:var(--accent); }
+.diary-more[hidden]{ display:none; }
 
 /* ---------------- 图库 ---------------- */
 .photo-grid{
@@ -1023,6 +1055,12 @@ main{ flex:1 0 auto; display:flex; flex-direction:column; }
   object-fit:cover;
   display:block;
   transition:transform .3s ease;
+}
+.photo-item video{
+  width:100%; height:100%;
+  object-fit:cover;
+  display:block;
+  background:#000;
 }
 .photo-item:hover img{ transform:scale(1.04); }
 .photo-item figcaption{
@@ -1701,6 +1739,7 @@ button.social{
                 <p>拍到了很喜欢的天空，云像被谁拿刷子扫过一样。</p>
               </li>
             </ul>
+            <button class="diary-more" id="diary-more" type="button" hidden data-text="recent.diary.more">点击显示更多</button>
           </article>
 
         </div>
@@ -2256,6 +2295,13 @@ button.social{
       if (resumeNote) resumeNote.hidden = true;
     }
 
+    // 小日记「显示更多 / 收起」按钮文案
+    if (typeof diaryLabels !== 'undefined' && diaryLabels) {
+      if (map['recent.diary.more']) diaryLabels.more = String(map['recent.diary.more']);
+      if (map['recent.diary.less']) diaryLabels.less = String(map['recent.diary.less']);
+      if (typeof syncDiaryToggle === 'function') syncDiaryToggle();
+    }
+
     // 邮箱：显示文字改了，复制按钮带的 data-copy 也要跟着改
     var email = map['contact.email'];
     if (email) {
@@ -2271,13 +2317,59 @@ button.social{
 
   /* ---------------- 小日记：读取 content/diary.json（后台可增删改） ---------------- */
   var diaryList = document.getElementById('diary-list');
+  var diaryMoreBtn = document.getElementById('diary-more');
+  var diaryExpanded = false;
+  var diaryLabels = { more: '点击显示更多', less: '收起' };
+  var DIARY_PREVIEW = 2;
+
+  function diaryMediaNode(media) {
+    if (!media || !media.src) return null;
+
+    var box = document.createElement('figure');
+    box.className = 'recent-diary-media';
+
+    if (media.type === 'video') {
+      var video = document.createElement('video');
+      video.src = media.src;
+      video.controls = true;
+      video.preload = 'metadata';
+      video.playsInline = true;
+      box.appendChild(video);
+    } else {
+      var img = document.createElement('img');
+      img.src = media.src;
+      img.alt = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      box.appendChild(img);
+    }
+
+    return box;
+  }
+
+  function syncDiaryToggle() {
+    if (!diaryMoreBtn || !diaryList) return;
+    var total = diaryList.children.length;
+    if (total <= DIARY_PREVIEW) {
+      diaryMoreBtn.hidden = true;
+      return;
+    }
+    diaryMoreBtn.hidden = false;
+    diaryMoreBtn.textContent = diaryExpanded ? diaryLabels.less : diaryLabels.more;
+    diaryMoreBtn.setAttribute('aria-expanded', diaryExpanded ? 'true' : 'false');
+  }
 
   function renderDiary(items) {
     if (!diaryList || !Array.isArray(items) || !items.length) return;
 
-    var frag = document.createDocumentFragment();
+    var sorted = items.slice().sort(function (a, b) {
+      return String((b && b.date) || '').localeCompare(String((a && a.date) || ''));
+    });
 
-    items.forEach(function (item) {
+    var frag = document.createDocumentFragment();
+    var shown = 0;
+
+    sorted.forEach(function (item) {
       if (!item || !String(item.text || '').trim()) return;
 
       var iso = String(item.date || '').trim();
@@ -2297,11 +2389,28 @@ button.social{
 
       li.appendChild(time);
       li.appendChild(text);
+
+      var media = diaryMediaNode(item.media);
+      if (media) li.appendChild(media);
+
+      if (shown >= DIARY_PREVIEW) li.className = 'is-extra';
+      shown++;
+
       frag.appendChild(li);
     });
 
     diaryList.textContent = '';
     diaryList.appendChild(frag);
+    diaryList.classList.toggle('is-expanded', diaryExpanded);
+    syncDiaryToggle();
+  }
+
+  if (diaryMoreBtn) {
+    diaryMoreBtn.addEventListener('click', function () {
+      diaryExpanded = !diaryExpanded;
+      if (diaryList) diaryList.classList.toggle('is-expanded', diaryExpanded);
+      syncDiaryToggle();
+    });
   }
 
   fetch('content/diary.json', { cache: 'no-store' })
@@ -2321,18 +2430,27 @@ button.social{
       target.grid.textContent = '';
 
       photos.forEach(function (photo) {
-        var src = photo && photo.image;
+        var src = photo && (photo.src || photo.image);
         if (!src) return;
 
         var fig = document.createElement('figure');
         fig.className = 'photo-item';
 
-        var img = document.createElement('img');
-        img.src = src;
-        img.alt = photo.caption || '照片';
-        img.loading = 'lazy';
-        img.decoding = 'async';
-        fig.appendChild(img);
+        if (photo.type === 'video') {
+          var video = document.createElement('video');
+          video.src = src;
+          video.controls = true;
+          video.preload = 'metadata';
+          video.playsInline = true;
+          fig.appendChild(video);
+        } else {
+          var img = document.createElement('img');
+          img.src = src;
+          img.alt = photo.caption || '照片';
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          fig.appendChild(img);
+        }
 
         if (photo.caption) {
           var cap = document.createElement('figcaption');

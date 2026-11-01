@@ -45,6 +45,8 @@
   "recent.gallery.empty": "还没有照片，去后台传一张就会出现在这里。",
   "recent.diary.kicker": "Diary",
   "recent.diary.title": "小日记",
+  "recent.diary.more": "点击显示更多",
+  "recent.diary.less": "收起",
   "detail.story.title": "我的故事/回忆",
   "detail.story.text": "这里放一些自己的故事和回忆：走过的路、拍下的照片，还有那些踩过之后才记住的坑。",
   "detail.story.btn": "去看看",
