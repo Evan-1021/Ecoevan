@@ -486,7 +486,7 @@
   var state = {
     site: { sha: null, data: {} },
     diary: { sha: null, data: [] },
-    gallery: { sha: null, data: { photos: [] } }
+    gallery: { sha: null, saved: [], photos: [] }
   };
 
   function setStatus(el, text, kind) {
@@ -661,7 +661,7 @@
       input.placeholder = '给这张照片写一句话（可不填）';
       input.value = photo.caption || '';
       input.addEventListener('input', function () {
-        state.gallery.data.photos[index].caption = input.value;
+        state.gallery.photos[index].caption = input.value;
       });
 
       var actions = document.createElement('div');
@@ -671,8 +671,8 @@
       del.className = 'danger small';
       del.textContent = '删除';
       del.addEventListener('click', function () {
-        state.gallery.data.photos.splice(index, 1);
-        renderPhotos(state.gallery.data.photos);
+        state.gallery.photos.splice(index, 1);
+        renderPhotos(state.gallery.photos);
       });
       actions.appendChild(del);
 
@@ -708,7 +708,7 @@
         return fileToB64(file).then(function (b64) {
           var path = 'photos/' + Date.now() + '-' + safeName(file.name);
           return ghPutBinary(path, b64, 'upload photo: ' + file.name).then(function () {
-            state.gallery.data.photos.push({ image: '/' + path, caption: '' });
+            state.gallery.photos.push({ image: '/' + path, caption: '' });
             done++;
             setStatus(photoStatus, '正在上传 ' + done + '/' + list.length + '…');
           });
@@ -717,13 +717,15 @@
     });
 
     chain.then(function () {
+      state.gallery.data.photos = state.gallery.photos;
       return ghPutText(GALLERY_PATH,
         JSON.stringify(state.gallery.data, null, 2) + '\n',
         'update gallery (' + list.length + ')',
         state.gallery.sha);
     }).then(function (json) {
       state.gallery.sha = json.content.sha;
-      renderPhotos(state.gallery.data.photos);
+      state.gallery.saved = JSON.parse(JSON.stringify(state.gallery.photos));
+      renderPhotos(state.gallery.photos);
       setStatus(photoStatus, '已上传 ' + list.length + ' 张，约 1 分钟后出现在网站上', 'ok');
     }).catch(function (err) {
       var msg = String(err.message || err);
@@ -786,18 +788,21 @@
       state.diary.data = diaryFile ? JSON.parse(decodeB64(diaryFile.content)) : [];
 
       state.gallery.sha = galleryFile ? galleryFile.sha : null;
-      state.gallery.data = galleryFile ? JSON.parse(decodeB64(galleryFile.content)) : { photos: [] };
-      if (!Array.isArray(state.gallery.data.photos)) state.gallery.data.photos = [];
+      var galleryData = galleryFile ? JSON.parse(decodeB64(galleryFile.content)) : { photos: [] };
+      if (!Array.isArray(galleryData.photos)) galleryData.photos = [];
+      state.gallery.data = galleryData;
+      state.gallery.saved = JSON.parse(JSON.stringify(galleryData.photos));
+      state.gallery.photos = JSON.parse(JSON.stringify(galleryData.photos));
 
       fillForm(state.site.data);
       renderDiary(state.diary.data);
-      renderPhotos(state.gallery.data.photos);
+      renderPhotos(state.gallery.photos);
 
       form.hidden = false;
       savebar.hidden = false;
       localStorage.setItem(TOKEN_KEY, token);
       setStatus(statusEl, '已载入：文案 ' + Object.keys(state.site.data).length +
-        ' 条 · 日记 ' + state.diary.data.length + ' 条 · 照片 ' + state.gallery.data.photos.length + ' 张', 'ok');
+        ' 条 · 日记 ' + state.diary.data.length + ' 条 · 照片 ' + state.gallery.photos.length + ' 张', 'ok');
       setStatus(saveStatus, '改完点右边「保存并发布」');
     }).catch(function (err) {
       setStatus(statusEl, explain(parseInt(String(err.message), 10)), 'err');
@@ -812,11 +817,11 @@
 
     var site = readForm();
     var diary = readDiary();
-    var photos = state.gallery.data.photos.filter(function (p) { return p && p.image; });
+    var photos = state.gallery.photos.filter(function (p) { return p && p.image; });
 
     var siteChanged = JSON.stringify(site) !== JSON.stringify(state.site.data);
     var diaryChanged = JSON.stringify(diary) !== JSON.stringify(state.diary.data);
-    var galleryChanged = JSON.stringify(photos) !== JSON.stringify(state.gallery.data.photos);
+    var galleryChanged = JSON.stringify(photos) !== JSON.stringify(state.gallery.saved);
 
     if (!siteChanged && !diaryChanged && !galleryChanged) {
       setStatus(saveStatus, '没有改动');
@@ -852,7 +857,10 @@
       chain = chain.then(function () {
         state.gallery.data.photos = photos;
         return ghPutText(GALLERY_PATH, JSON.stringify(state.gallery.data, null, 2) + '\n', 'update gallery', state.gallery.sha)
-          .then(function (json) { state.gallery.sha = json.content.sha; });
+          .then(function (json) {
+            state.gallery.sha = json.content.sha;
+            state.gallery.saved = JSON.parse(JSON.stringify(photos));
+          });
       });
     }
 
@@ -876,7 +884,8 @@
   reloadBtn.addEventListener('click', function () {
     fillForm(state.site.data);
     renderDiary(state.diary.data);
-    renderPhotos(state.gallery.data.photos);
+    state.gallery.photos = JSON.parse(JSON.stringify(state.gallery.saved));
+    renderPhotos(state.gallery.photos);
     setStatus(saveStatus, '已放弃未保存的修改');
   });
 
@@ -885,7 +894,7 @@
     tokenInput.value = '';
     form.hidden = true;
     savebar.hidden = true;
-    state = { site: { sha: null, data: {} }, diary: { sha: null, data: [] }, gallery: { sha: null, data: { photos: [] } } };
+    state = { site: { sha: null, data: {} }, diary: { sha: null, data: [] }, gallery: { sha: null, saved: [], photos: [] } };
     setStatus(statusEl, '已忘记令牌');
   });
 
