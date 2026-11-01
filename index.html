@@ -126,6 +126,83 @@ code{
 }
 .skip-link:focus{ left:0; }
 
+/* ---------------- 进入封面 ---------------- */
+body.is-covered{ overflow:hidden; }
+
+.cover{
+  position:fixed; inset:0; z-index:300;
+  display:grid; place-items:center;
+  padding:clamp(24px, 6vw, 64px);
+  background:
+    radial-gradient(900px 520px at 12% -8%, #e9eefb 0%, transparent 60%),
+    radial-gradient(760px 460px at 88% 0%, #eef1f7 0%, transparent 55%),
+    var(--bg);
+  transition:opacity .42s ease, visibility .42s ease;
+}
+.cover.is-leaving{ opacity:0; visibility:hidden; }
+.cover[hidden]{ display:none; }
+
+.cover-inner{
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+  gap:clamp(16px, 2.4vw, 24px);
+  max-width:660px;
+}
+
+.cover-avatar{
+  width:clamp(136px, 20vw, 196px);
+  aspect-ratio:1;
+  border-radius:50%;
+  padding:6px;
+  background:linear-gradient(145deg, #ffffff 0%, #e9edf5 60%, #dfe5f0 100%);
+  box-shadow:var(--shadow-sm), inset 0 0 0 1px rgba(255,255,255,.9);
+}
+.cover-avatar img{
+  width:100%; height:100%;
+  border-radius:50%; object-fit:cover; display:block;
+  background:var(--surface-2);
+}
+
+.cover-name{
+  font-size:clamp(52px, 10vw, 96px);
+  line-height:.95;
+  letter-spacing:-.045em;
+  font-weight:700;
+  color:var(--ink);
+}
+
+.cover-line{
+  font-size:clamp(15px, 2.1vw, 18.5px);
+  color:var(--muted);
+  max-width:24em;
+  line-height:1.7;
+}
+
+.cover-enter{
+  margin-top:clamp(4px, 1.2vw, 12px);
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:min(320px, 78vw);
+  height:54px;
+  padding:0 34px;
+  border:0;
+  border-radius:999px;
+  background:var(--accent);
+  color:#fff;
+  font-family:inherit;
+  font-size:16px;
+  font-weight:600;
+  letter-spacing:.04em;
+  cursor:pointer;
+  box-shadow:0 18px 36px -18px rgba(62,99,221,.9);
+  transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+.cover-enter:hover{
+  transform:translateY(-2px);
+  background:var(--accent-ink);
+  color:#fff;
+  box-shadow:0 24px 44px -20px rgba(62,99,221,.95);
+}
+.cover-enter:active{ transform:translateY(0); }
+
 /* ---------------- 顶部导航 ---------------- */
 .site-header{
   position:sticky; top:0; z-index:50;
@@ -1100,6 +1177,20 @@ button.social{
 <body>
 <a class="skip-link" href="#main" id="skip-link">跳到主要内容</a>
 
+<!-- 进入封面：初次打开网站时看到，点「点击进入」后进入正式页面 -->
+<div class="cover" id="cover" role="region" aria-label="欢迎页">
+  <div class="cover-inner">
+    <div class="cover-avatar">
+      <img src="avatar.jpg" alt="Evan 的头像" width="480" height="480" decoding="async">
+    </div>
+    <h1 class="cover-name">Evan</h1>
+    <p class="cover-line">你好，我是 Evan，欢迎来到我的频道。</p>
+    <button class="cover-enter" id="cover-enter" type="button">点击进入</button>
+  </div>
+</div>
+
+<noscript><style>.cover{ display:none !important; }</style></noscript>
+
 <!-- ============================ 导航 ============================ -->
 <header class="site-header">
   <div class="nav-inner">
@@ -1123,7 +1214,7 @@ button.social{
   </div>
 </header>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
   <!-- ============================ ① 首页 ============================ -->
   <section class="page home-page is-active" id="page-home" data-title="首页">
@@ -2080,6 +2171,35 @@ button.social{
 
   // 首次进入页面时加载
   loadReviews();
+
+  /* ---------------- 进入封面 ---------------- */
+  var cover = document.getElementById('cover');
+  var coverEnter = document.getElementById('cover-enter');
+
+  function enterSite() {
+    if (!cover || cover.hidden) return;
+    cover.classList.add('is-leaving');
+    document.body.classList.remove('is-covered');
+
+    window.setTimeout(function () {
+      cover.hidden = true;
+      cover.classList.remove('is-leaving');
+    }, 430);
+
+    var mainRegion = document.getElementById('main');
+    if (mainRegion) mainRegion.focus();
+  }
+
+  if (cover && coverEnter) {
+    document.body.classList.add('is-covered');
+    coverEnter.addEventListener('click', enterSite);
+
+    cover.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') enterSite();
+    });
+
+    window.setTimeout(function () { coverEnter.focus(); }, 80);
+  }
 
   /* ---------------- 图库：读取 Pages CMS 写入的 content/gallery.json ---------------- */
   var galleryTargets = [
