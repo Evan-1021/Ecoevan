@@ -1833,7 +1833,7 @@ button.social{
     document.title = 'Evan · ' + (title || '个人名片');
     current = name;
 
-    if (name === 'home' && typeof playHomeIntro === 'function') playHomeIntro();
+    if (name === 'home' && !isCoverPending() && typeof playHomeIntro === 'function') playHomeIntro();
   }
 
   function gotoRoute(animate) {
@@ -1850,13 +1850,24 @@ button.social{
   // 首页入场动画：每次进入首页都重放
   var homeAnims = Array.prototype.slice.call(document.querySelectorAll('.home-anim'));
 
-  function playHomeIntro() {
+  function isCoverPending() {
+    var el = document.getElementById('cover');
+    return !!(el && !el.hidden);
+  }
+
+  function playHomeIntro(delay) {
     if (!homeAnims.length) return;
-    homeAnims.forEach(function (el) { el.classList.remove('is-in'); });
-    void document.body.offsetWidth;   // 强制重排，重启动画
-    window.requestAnimationFrame(function () {
-      homeAnims.forEach(function (el) { el.classList.add('is-in'); });
-    });
+
+    var start = function () {
+      homeAnims.forEach(function (el) { el.classList.remove('is-in'); });
+      void document.body.offsetWidth;   // 强制重排，重启动画
+      window.requestAnimationFrame(function () {
+        homeAnims.forEach(function (el) { el.classList.add('is-in'); });
+      });
+    };
+
+    if (delay) window.setTimeout(start, delay);
+    else start();
   }
 
   // 首次进入：按地址栏决定页面（支持直接分享 #/about 这类链接）
@@ -2185,6 +2196,9 @@ button.social{
       cover.hidden = true;
       cover.classList.remove('is-leaving');
     }, 430);
+
+    // 封面淡出的同时，首页文字与卡片依次升起（和直接进首页时的入场一致）
+    playHomeIntro(120);
 
     var mainRegion = document.getElementById('main');
     if (mainRegion) mainRegion.focus();
