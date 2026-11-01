@@ -35,7 +35,18 @@
   ================================================================
 -->
 
-<script>document.documentElement.classList.add('js');</script>
+<script>
+  document.documentElement.classList.add('js');
+  // 先按上次的选择把主题定下来，避免深色用户看到一闪而过的白屏
+  try {
+    var savedTheme = localStorage.getItem('evan_theme');
+    if (!savedTheme) {
+      savedTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  } catch (e) {}
+</script>
 
 <style>
 /* ============================================================
