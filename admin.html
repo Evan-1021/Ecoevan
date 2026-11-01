@@ -137,6 +137,15 @@
   .photo-row .cap{ width:100%; }
   .empty-note{ color:var(--muted); font-size:13.5px; padding:6px 0; }
 
+  .subhead{
+    font-size:12.5px; font-weight:700; color:var(--accent);
+    letter-spacing:.04em;
+    margin:18px 0 10px; padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  .subhead:first-child{ margin-top:0; padding-top:0; border-top:0; }
+  .hint-block{ font-size:12.5px; color:var(--muted); margin:10px 0 0; }
+
   .filefield{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
   .filefield input[type=file]{ display:none; }
   .filename{ font-size:13px; color:var(--muted); }
@@ -326,40 +335,90 @@
       </div>
     </section>
 
-    <h2 class="group">我的最近</h2>
+    <h2 class="group">我的最近 <small>这一页上的文字都能在这里改</small></h2>
     <section class="panel">
+      <div class="subhead">页面顶部</div>
       <div class="field">
-        <label for="f-recent.lead">标题下那一句</label>
-        <input type="text" id="f-recent.lead" data-key="recent.lead">
+        <label for="f-recent.eyebrow">左上小标题</label>
+        <input type="text" id="f-recent.eyebrow" data-key="recent.eyebrow">
       </div>
       <div class="field">
-        <label for="f-recent.game.title">游戏卡片标题</label>
+        <label for="f-recent.title">大标题</label>
+        <input type="text" id="f-recent.title" data-key="recent.title">
+      </div>
+      <div class="field">
+        <label for="f-recent.lead">标题下那一句</label>
+        <textarea id="f-recent.lead" data-key="recent.lead"></textarea>
+      </div>
+      <div class="subhead">卡片一 · 游戏</div>
+      <div class="field">
+        <label for="f-recent.game.kicker">小标签 <span class="hint">右上角的英文</span></label>
+        <input type="text" id="f-recent.game.kicker" data-key="recent.game.kicker">
+      </div>
+      <div class="field">
+        <label for="f-recent.game.title">标题</label>
         <input type="text" id="f-recent.game.title" data-key="recent.game.title">
       </div>
       <div class="field">
-        <label for="f-recent.game.text">游戏那段话</label>
+        <label for="f-recent.game.text">正文</label>
         <textarea id="f-recent.game.text" data-key="recent.game.text"></textarea>
       </div>
       <div class="field">
-        <label for="f-recent.music.title">音乐卡片标题</label>
+        <label for="f-recent.game.b1">要点 1</label>
+        <input type="text" id="f-recent.game.b1" data-key="recent.game.b1">
+      </div>
+      <div class="field">
+        <label for="f-recent.game.b2">要点 2</label>
+        <input type="text" id="f-recent.game.b2" data-key="recent.game.b2">
+      </div>
+      <div class="subhead">卡片二 · 音乐</div>
+      <div class="field">
+        <label for="f-recent.music.kicker">小标签</label>
+        <input type="text" id="f-recent.music.kicker" data-key="recent.music.kicker">
+      </div>
+      <div class="field">
+        <label for="f-recent.music.title">标题</label>
         <input type="text" id="f-recent.music.title" data-key="recent.music.title">
       </div>
       <div class="field">
-        <label for="f-recent.music.text">音乐那段话</label>
+        <label for="f-recent.music.text">正文</label>
         <textarea id="f-recent.music.text" data-key="recent.music.text"></textarea>
       </div>
       <div class="field">
-        <label for="f-recent.gallery.title">图库卡片标题</label>
+        <label for="f-recent.music.b1">要点 1</label>
+        <input type="text" id="f-recent.music.b1" data-key="recent.music.b1">
+      </div>
+      <div class="field">
+        <label for="f-recent.music.b2">要点 2</label>
+        <input type="text" id="f-recent.music.b2" data-key="recent.music.b2">
+      </div>
+      <div class="subhead">卡片三 · 图库</div>
+      <div class="field">
+        <label for="f-recent.gallery.kicker">小标签</label>
+        <input type="text" id="f-recent.gallery.kicker" data-key="recent.gallery.kicker">
+      </div>
+      <div class="field">
+        <label for="f-recent.gallery.title">标题</label>
         <input type="text" id="f-recent.gallery.title" data-key="recent.gallery.title">
       </div>
       <div class="field">
-        <label for="f-recent.gallery.text">图库那段话</label>
+        <label for="f-recent.gallery.text">正文</label>
         <textarea id="f-recent.gallery.text" data-key="recent.gallery.text"></textarea>
       </div>
       <div class="field">
-        <label for="f-recent.diary.title">小日记卡片标题</label>
+        <label for="f-recent.gallery.empty">还没照片时的提示</label>
+        <input type="text" id="f-recent.gallery.empty" data-key="recent.gallery.empty">
+      </div>
+      <div class="subhead">卡片四 · 小日记</div>
+      <div class="field">
+        <label for="f-recent.diary.kicker">小标签</label>
+        <input type="text" id="f-recent.diary.kicker" data-key="recent.diary.kicker">
+      </div>
+      <div class="field">
+        <label for="f-recent.diary.title">标题</label>
         <input type="text" id="f-recent.diary.title" data-key="recent.diary.title">
       </div>
+      <p class="hint-block">日记正文在下面「小日记」区里一条条改。</p>
     </section>
 
     <h2 class="group">小日记 <small>每一条 = 日期 + 一段话，可以随时加、删</small></h2>
